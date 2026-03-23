@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pipe Size Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e14;
+    --panel: #111820;
+    --border: #1e3448;
+    --accent-water: #00b4d8;
+    --accent-air: #f4a261;
+    --accent-glow-water: rgba(0,180,216,0.15);
+    --accent-glow-air: rgba(244,162,97,0.15);
+    --text: #c8d8e8;
+    --muted: #4a6278;
+    --green: #52e0a0;
+    --red: #e05252;
+    --grid: rgba(30,52,72,0.4);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 20px 60px;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  .header-badge {
+    display: inline-block;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    border: 1px solid var(--border);
+    padding: 4px 14px;
+    margin-bottom: 16px;
+  }
+
+  h1 {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: clamp(32px, 5vw, 56px);
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    line-height: 1;
+    margin-bottom: 10px;
+    color: #fff;
+  }
+
+  h1 span.water { color: var(--accent-water); }
+  h1 span.air { color: var(--accent-air); }
+
+  .subtitle {
+    font-size: 14px;
+    color: var(--muted);
+    font-family: 'Share Tech Mono', monospace;
+    letter-spacing: 1px;
+  }
+
+  /* Fluid type selector */
+  .fluid-selector {
+    display: flex;
+    gap: 0;
+    justify-content: center;
+    margin-bottom: 36px;
+    border: 1px solid var(--border);
+    width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
+    overflow: hidden;
+  }
+
+  .fluid-btn {
+    padding: 12px 36px;
+    cursor: pointer;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    transition: all 0.25s;
+    position: relative;
+  }
+
+  .fluid-btn.active[data-fluid="water"] {
+    background: var(--accent-glow-water);
+    color: var(--accent-water);
+    box-shadow: inset 0 -2px 0 var(--accent-water);
+  }
+
+  .fluid-btn.active[data-fluid="air"] {
+    background: var(--accent-glow-air);
+    color: var(--accent-air);
+    box-shadow: inset 0 -2px 0 var(--accent-air);
+  }
+
+  .fluid-btn:hover:not(.active) { color: var(--text); background: rgba(255,255,255,0.04); }
+
+  /* Mode tabs */
+  .mode-selector {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 28px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 4px;
+    width: fit-content;
+  }
+
+  .mode-btn {
+    padding: 8px 24px;
+    cursor: pointer;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 1px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    transition: all 0.2s;
+  }
+
+  .mode-btn.active {
+    background: var(--border);
+    color: var(--text);
+  }
+
+  /* Main calculator grid */
+  .calc-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+
+  @media (max-width: 700px) {
+    .calc-grid { grid-template-columns: 1fr; }
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 24px;
+    position: relative;
+  }
+
+  .panel-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .panel-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .field-group {
+    margin-bottom: 18px;
+  }
+
+  label {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 6px;
+    font-family: 'Share Tech Mono', monospace;
+    letter-spacing: 1px;
+  }
+
+  .input-row {
+    display: flex;
+    gap: 0;
+  }
+
+  input[type="number"] {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-right: none;
+    color: var(--text);
+    padding: 10px 14px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 16px;
+    outline: none;
+    transition: border-color 0.2s;
+    min-width: 0;
+  }
+
+  input[type="number"]:focus { border-color: var(--accent-water); }
+  body.air-mode input[type="number"]:focus { border-color: var(--accent-air); }
+
+  input[type="number"]::placeholder { color: var(--muted); font-size: 13px; }
+
+  select, .unit-select {
+    background: var(--border);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 10px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    outline: none;
+    cursor: pointer;
+    min-width: 80px;
+    appearance: none;
+    text-align: center;
+  }
+
+  /* Results panel */
+  .results-panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 28px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .results-panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent-water), transparent);
+    transition: background 0.4s;
+  }
+
+  body.air-mode .results-panel::before {
+    background: linear-gradient(90deg, var(--accent-air), transparent);
+  }
+
+  .result-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px;
+  }
+
+  .result-item {
+    text-align: center;
+  }
+
+  .result-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .result-value {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--accent-water);
+    line-height: 1;
+    transition: color 0.3s;
+  }
+
+  body.air-mode .result-value { color: var(--accent-air); }
+
+  .result-unit {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .result-status {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    padding: 4px 10px;
+    display: inline-block;
+    margin-top: 6px;
+    border: 1px solid;
+  }
+
+  .status-ok { color: var(--green); border-color: var(--green); background: rgba(82,224,160,0.08); }
+  .status-high { color: var(--red); border-color: var(--red); background: rgba(224,82,82,0.08); }
+  .status-low { color: var(--accent-air); border-color: var(--accent-air); background: var(--accent-glow-air); }
+
+  /* Pipe selection */
+  .pipe-select-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .pipe-btn {
+    padding: 8px 4px;
+    text-align: center;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    transition: all 0.2s;
+  }
+
+  .pipe-btn:hover { border-color: var(--accent-water); color: var(--accent-water); }
+  body.air-mode .pipe-btn:hover { border-color: var(--accent-air); color: var(--accent-air); }
+
+  .pipe-btn.recommended {
+    border-color: var(--green);
+    color: var(--green);
+    background: rgba(82,224,160,0.06);
+  }
+
+  .pipe-btn.selected {
+    border-color: var(--accent-water);
+    color: var(--accent-water);
+    background: var(--accent-glow-water);
+  }
+
+  body.air-mode .pipe-btn.selected {
+    border-color: var(--accent-air);
+    color: var(--accent-air);
+    background: var(--accent-glow-air);
+  }
+
+  /* Calculate button */
+  .calc-btn {
+    width: 100%;
+    padding: 16px;
+    cursor: pointer;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    border: none;
+    background: linear-gradient(135deg, #0080a0, #00b4d8);
+    color: #fff;
+    transition: all 0.25s;
+    margin-bottom: 20px;
+  }
+
+  body.air-mode .calc-btn {
+    background: linear-gradient(135deg, #c06030, #f4a261);
+  }
+
+  .calc-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+  .calc-btn:active { transform: translateY(0); }
+
+  /* Reference table */
+  .ref-section {
+    margin-top: 32px;
+  }
+
+  .section-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+  }
+
+  th {
+    background: var(--border);
+    color: var(--muted);
+    padding: 8px 12px;
+    text-align: left;
+    font-weight: 400;
+    letter-spacing: 1px;
+    font-size: 11px;
+  }
+
+  td {
+    padding: 8px 12px;
+    border-bottom: 1px solid rgba(30,52,72,0.5);
+    color: var(--text);
+  }
+
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+  .highlight-row td { color: var(--green); }
+
+  /* Velocity gauge */
+  .gauge-wrap {
+    margin-top: 16px;
+  }
+
+  .gauge-label {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  .gauge-bar {
+    height: 6px;
+    background: var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .gauge-fill {
+    height: 100%;
+    width: 0%;
+    transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.3s;
+    background: var(--green);
+  }
+
+  .gauge-zones {
+    display: flex;
+    height: 3px;
+    margin-top: 2px;
+  }
+
+  .zone-low { flex: 2; background: var(--accent-air); opacity: 0.5; }
+  .zone-ok { flex: 5; background: var(--green); opacity: 0.5; }
+  .zone-high { flex: 3; background: var(--red); opacity: 0.5; }
+
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 24px 0;
+  }
+
+  .info-note {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'Share Tech Mono', monospace;
+    line-height: 1.7;
+    padding: 14px;
+    border-left: 2px solid var(--border);
+    margin-top: 16px;
+  }
+
+  .tag {
+    display: inline-block;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    padding: 2px 8px;
+    border: 1px solid;
+    letter-spacing: 1px;
+    vertical-align: middle;
+    margin-left: 6px;
+  }
+
+  .tag-water { color: var(--accent-water); border-color: var(--accent-water); }
+  .tag-air { color: var(--accent-air); border-color: var(--accent-air); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="header-badge">FLUID SYSTEMS // ENGINEERING CALCULATOR</div>
+    <h1><span class="water">PIPE</span> <span class="air">SIZE</span> CALC</h1>
+    <p class="subtitle">FLOW RATE ↔ VELOCITY ↔ DIAMETER &nbsp;|&nbsp; WATER & COMPRESSED AIR</p>
+  </header>
+
+  <!-- Fluid Selector -->
+  <div style="text-align:center">
+    <div class="fluid-selector">
+      <button class="fluid-btn active" data-fluid="water" onclick="setFluid('water')">💧 Water</button>
+      <button class="fluid-btn" data-fluid="air" onclick="setFluid('air')">💨 Compressed Air</button>
+    </div>
+  </div>
+
+  <!-- Mode Selector -->
+  <div style="display:flex;justify-content:center;margin-bottom:28px;">
+    <div class="mode-selector">
+      <button class="mode-btn active" id="modeBtnPipe" onclick="setMode('find-pipe')">FIND PIPE SIZE</button>
+      <button class="mode-btn" id="modeBtnVel" onclick="setMode('find-velocity')">FIND VELOCITY</button>
+      <button class="mode-btn" id="modeBtnFlow" onclick="setMode('find-flow')">FIND FLOW RATE</button>
+    </div>
+  </div>
+
+  <!-- Input Panels -->
+  <div class="calc-grid" id="inputGrid">
+
+    <!-- Panel 1: Flow / Velocity inputs -->
+    <div class="panel">
+      <div class="panel-label">Input Parameters</div>
+
+      <!-- Find Pipe: need Flow Rate + Velocity -->
+      <div id="inputFlowRate" class="field-group">
+        <label>FLOW RATE (Q)</label>
+        <div class="input-row">
+          <input type="number" id="flowRate" placeholder="e.g. 10" min="0" step="any">
+          <select id="flowUnit" class="unit-select">
+            <option value="lps">L/s</option>
+            <option value="lpm">L/min</option>
+            <option value="m3h" selected>m³/h</option>
+            <option value="m3s">m³/s</option>
+            <option value="gpm">GPM</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="inputVelocity" class="field-group">
+        <label>FLOW VELOCITY (V)</label>
+        <div class="input-row">
+          <input type="number" id="velocity" placeholder="e.g. 1.5" min="0" step="any">
+          <select id="velUnit" class="unit-select">
+            <option value="ms" selected>m/s</option>
+            <option value="fps">ft/s</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="inputDiameter" class="field-group" style="display:none">
+        <label>PIPE INNER DIAMETER (D)</label>
+        <div class="input-row">
+          <input type="number" id="diameter" placeholder="e.g. 50" min="0" step="any">
+          <select id="diamUnit" class="unit-select">
+            <option value="mm" selected>mm</option>
+            <option value="inch">inch</option>
+            <option value="m">m</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Air-specific -->
+      <div id="airParams" style="display:none">
+        <hr class="divider">
+        <div class="panel-label">Air Conditions</div>
+        <div class="field-group">
+          <label>LINE PRESSURE (GAUGE)</label>
+          <div class="input-row">
+            <input type="number" id="airPressure" value="0" min="0" step="0.1">
+            <select id="pressUnit" class="unit-select">
+              <option value="bar" selected>bar</option>
+              <option value="psi">psi</option>
+              <option value="kpa">kPa</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-group">
+          <label>FREE AIR DELIVERY (FAD)</label>
+          <div class="input-row">
+            <input type="number" id="airFAD" placeholder="e.g. 100" min="0" step="any">
+            <select id="fadUnit" class="unit-select">
+              <option value="lpm" selected>L/min</option>
+              <option value="cfm">CFM</option>
+              <option value="m3h">m³/h</option>
+            </select>
+          </div>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px;font-family:'Share Tech Mono',monospace;">
+            ↳ FAD will be auto-converted to actual flow at line pressure
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Panel 2: Pipe standard picker -->
+    <div class="panel">
+      <div class="panel-label">Pipe Standard <span class="tag tag-water" id="stdTag">ISO / EN</span></div>
+      <div class="field-group">
+        <label>STANDARD</label>
+        <div class="input-row" style="flex-wrap:wrap;gap:4px;">
+          <select id="pipeStd" class="unit-select" style="min-width:160px;flex:1;" onchange="renderPipeTable()">
+            <option value="dn">DN (ISO/EN metric)</option>
+            <option value="nps">NPS (ANSI inch)</option>
+            <option value="copper">Copper (EN1057)</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-group">
+        <label>PIPE MATERIAL / USE</label>
+        <select id="pipeMaterial" class="unit-select" style="width:100%;min-width:unset;" onchange="updateVelRecommendations()">
+          <option value="water-supply">Water – Supply/Distribution</option>
+          <option value="water-hot">Water – Hot Service</option>
+          <option value="water-drain">Water – Drain/Return</option>
+          <option value="air-service">Compressed Air – Service Line</option>
+          <option value="air-main">Compressed Air – Main Header</option>
+          <option value="air-branch">Compressed Air – Branch Line</option>
+        </select>
+      </div>
+      <div id="velGuide" class="info-note"></div>
+    </div>
+
+  </div>
+
+  <!-- Calculate Button -->
+  <button class="calc-btn" onclick="calculate()">▶ CALCULATE</button>
+
+  <!-- Results -->
+  <div class="results-panel" id="resultsPanel">
+    <div class="panel-label">Results</div>
+    <div class="result-grid" id="resultGrid">
+      <div class="result-item">
+        <div class="result-label">Pipe Diameter</div>
+        <div class="result-value" id="resDiam">—</div>
+        <div class="result-unit" id="resDiamUnit">mm</div>
+      </div>
+      <div class="result-item">
+        <div class="result-label">Actual Velocity</div>
+        <div class="result-value" id="resVel">—</div>
+        <div class="result-unit">m/s</div>
+        <div id="velStatus"></div>
+      </div>
+      <div class="result-item">
+        <div class="result-label">Flow Rate</div>
+        <div class="result-value" id="resFlow">—</div>
+        <div class="result-unit" id="resFlowUnit">m³/h</div>
+      </div>
+      <div class="result-item">
+        <div class="result-label">Cross Section Area</div>
+        <div class="result-value" id="resArea">—</div>
+        <div class="result-unit">cm²</div>
+      </div>
+    </div>
+    <div class="gauge-wrap">
+      <div class="gauge-label"><span>LOW</span><span>RECOMMENDED RANGE</span><span>HIGH</span></div>
+      <div class="gauge-bar"><div class="gauge-fill" id="gaugeBar"></div></div>
+      <div class="gauge-zones">
+        <div class="zone-low"></div>
+        <div class="zone-ok"></div>
+        <div class="zone-high"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recommended Pipe Sizes Table -->
+  <div class="ref-section">
+    <div class="section-title">Recommended Pipe Sizes — Click to Use</div>
+    <div class="pipe-select-grid" id="pipeGrid"></div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Standard pipe table -->
+  <div class="ref-section">
+    <div class="section-title">Standard Pipe Dimensions</div>
+    <div style="overflow-x:auto;">
+      <table id="pipeTable">
+        <thead>
+          <tr>
+            <th>Size</th><th>DN / NPS</th><th>OD (mm)</th><th>ID (mm)</th><th>Wall (mm)</th>
+            <th>Area (cm²)</th><th>Max Flow @1m/s (m³/h)</th><th>Max Flow @3m/s (m³/h)</th>
+          </tr>
+        </thead>
+        <tbody id="pipeTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="info-note" style="margin-top:24px;">
+    NOTES: Calculations use Q = A × V (continuity equation). 
+    For compressed air, FAD is converted to actual volumetric flow at line pressure using: Q_actual = Q_FAD / (P_abs / P_atm). 
+    Recommended velocities are guidelines; always verify with pressure drop calculations for your specific installation.
+    All pipe data is nominal; verify with manufacturer datasheets.
+  </div>
+
+</div>
+
+<script>
+// ─── DATA ────────────────────────────────────────────────────────────────────
+const pipes = {
+  dn: [
+    {size:'DN 15',dn:15,od:21.3,id:16.1,wall:2.6},
+    {size:'DN 20',dn:20,od:26.9,id:21.7,wall:2.6},
+    {size:'DN 25',dn:25,od:33.7,id:27.3,wall:3.2},
+    {size:'DN 32',dn:32,od:42.4,id:35.8,wall:3.2},
+    {size:'DN 40',dn:40,od:48.3,id:40.9,wall:3.2},
+    {size:'DN 50',dn:50,od:60.3,id:52.5,wall:3.9},
+    {size:'DN 65',dn:65,od:76.1,id:68.3,wall:3.9},
+    {size:'DN 80',dn:80,od:88.9,id:80.7,wall:4.1},
+    {size:'DN 100',dn:100,od:114.3,id:105.3,wall:4.5},
+    {size:'DN 125',dn:125,od:139.7,id:130.0,wall:4.9},
+    {size:'DN 150',dn:150,od:168.3,id:158.3,wall:5.0},
+    {size:'DN 200',dn:200,od:219.1,id:208.1,wall:5.5},
+    {size:'DN 250',dn:250,od:273.0,id:260.4,wall:6.3},
+    {size:'DN 300',dn:300,od:323.9,id:309.7,wall:7.1},
+  ],
+  nps: [
+    {size:'1/2"',dn:15,od:21.3,id:15.8,wall:2.77},
+    {size:'3/4"',dn:20,od:26.7,id:20.9,wall:2.87},
+    {size:'1"',dn:25,od:33.4,id:26.6,wall:3.38},
+    {size:'1-1/4"',dn:32,od:42.2,id:35.1,wall:3.56},
+    {size:'1-1/2"',dn:40,od:48.3,id:40.9,wall:3.68},
+    {size:'2"',dn:50,od:60.3,id:52.5,wall:3.91},
+    {size:'2-1/2"',dn:65,od:73.0,id:62.7,wall:5.16},
+    {size:'3"',dn:80,od:88.9,id:77.9,wall:5.49},
+    {size:'4"',dn:100,od:114.3,id:102.3,wall:6.02},
+    {size:'5"',dn:125,od:141.3,id:128.2,wall:6.55},
+    {size:'6"',dn:150,od:168.3,id:154.1,wall:7.11},
+    {size:'8"',dn:200,od:219.1,id:202.7,wall:8.18},
+    {size:'10"',dn:250,od:273.0,id:254.5,wall:9.27},
+    {size:'12"',dn:300,od:323.9,id:303.2,wall:10.31},
+  ],
+  copper: [
+    {size:'15mm',dn:12,od:15,id:13.0,wall:1.0},
+    {size:'18mm',dn:15,od:18,id:16.0,wall:1.0},
+    {size:'22mm',dn:20,od:22,id:20.0,wall:1.0},
+    {size:'28mm',dn:25,od:28,id:26.0,wall:1.0},
+    {size:'35mm',dn:32,od:35,id:32.6,wall:1.2},
+    {size:'42mm',dn:40,od:42,id:39.6,wall:1.2},
+    {size:'54mm',dn:50,od:54,id:51.6,wall:1.2},
+    {size:'67mm',dn:65,od:67,id:64.3,wall:1.35},
+    {size:'76mm',dn:80,od:76.1,id:73.0,wall:1.5},
+    {size:'108mm',dn:100,od:108,id:104.8,wall:1.6},
+    {size:'133mm',dn:125,od:133,id:129.6,wall:1.7},
+    {size:'159mm',dn:150,od:159,id:155.2,wall:1.9},
+  ],
+};
+
+const velRecs = {
+  'water-supply': {min:0.5,rec:[1.0,2.5],max:3.0,label:'Water Supply'},
+  'water-hot':    {min:0.3,rec:[0.5,1.5],max:2.0,label:'Hot Water Service'},
+  'water-drain':  {min:0.5,rec:[0.7,1.2],max:2.0,label:'Drain / Return'},
+  'air-service':  {min:3,rec:[6,10],max:15,label:'Compressed Air Service'},
+  'air-main':     {min:3,rec:[4,8],max:10,label:'Compressed Air Main'},
+  'air-branch':   {min:2,rec:[3,6],max:8,label:'Compressed Air Branch'},
+};
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let currentFluid = 'water';
+let currentMode = 'find-pipe';
+let selectedPipeIdx = -1;
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+function init() {
+  setFluid('water');
+  setMode('find-pipe');
+  updateVelRecommendations();
+  renderPipeTable();
+  renderPipeGrid();
+}
+
+function setFluid(f) {
+  currentFluid = f;
+  document.querySelectorAll('.fluid-btn').forEach(b => b.classList.toggle('active', b.dataset.fluid === f));
+  document.body.classList.toggle('air-mode', f === 'air');
+  document.getElementById('airParams').style.display = f === 'air' ? 'block' : 'none';
+  // Update material selector
+  const mat = document.getElementById('pipeMaterial');
+  if(f === 'water') {
+    mat.value = mat.value.startsWith('air') ? 'water-supply' : mat.value;
+    Array.from(mat.options).forEach(o => o.style.display = o.value.startsWith('water') ? '' : 'none');
+  } else {
+    mat.value = mat.value.startsWith('water') ? 'air-service' : mat.value;
+    Array.from(mat.options).forEach(o => o.style.display = o.value.startsWith('air') ? '' : 'none');
+  }
+  document.getElementById('stdTag').textContent = f === 'air' ? 'ISO / EN' : 'ISO / EN';
+  updateVelRecommendations();
+  renderPipeTable();
+  renderPipeGrid();
+}
+
+function setMode(mode) {
+  currentMode = mode;
+  ['find-pipe','find-velocity','find-flow'].forEach(m => {
+    document.getElementById(m === 'find-pipe' ? 'modeBtnPipe' : m === 'find-velocity' ? 'modeBtnVel' : 'modeBtnFlow')
+      .classList.toggle('active', m === mode);
+  });
+  // Show/hide inputs based on mode
+  const iFlow = document.getElementById('inputFlowRate');
+  const iVel  = document.getElementById('inputVelocity');
+  const iDiam = document.getElementById('inputDiameter');
+  if(mode === 'find-pipe') {
+    iFlow.style.display = ''; iVel.style.display = ''; iDiam.style.display = 'none';
+  } else if(mode === 'find-velocity') {
+    iFlow.style.display = ''; iVel.style.display = 'none'; iDiam.style.display = '';
+  } else {
+    iFlow.style.display = 'none'; iVel.style.display = ''; iDiam.style.display = '';
+  }
+}
+
+function updateVelRecommendations() {
+  const mat = document.getElementById('pipeMaterial').value;
+  const r = velRecs[mat];
+  document.getElementById('velGuide').innerHTML =
+    `<strong style="color:var(--text)">${r.label}</strong><br>
+    MIN: ${r.min} m/s &nbsp;|&nbsp; RECOMMENDED: ${r.rec[0]}–${r.rec[1]} m/s &nbsp;|&nbsp; MAX: ${r.max} m/s`;
+}
+
+// ─── UNIT CONVERSIONS ────────────────────────────────────────────────────────
+function toM3s(val, unit) {
+  const f = {lps:1e-3, lpm:1/60000, m3h:1/3600, m3s:1, gpm:6.309e-5};
+  return val * f[unit];
+}
+function fromM3s(val, unit) {
+  const f = {lps:1000, lpm:60000, m3h:3600, m3s:1, gpm:15850.3};
+  return val * f[unit];
+}
+function toMs(val, unit) { return unit === 'fps' ? val * 0.3048 : val; }
+function toMm(val, unit) { return unit === 'inch' ? val * 25.4 : unit === 'm' ? val * 1000 : val; }
+function toBar(val, unit) {
+  if(unit==='psi') return val * 0.0689476;
+  if(unit==='kpa') return val / 100;
+  return val;
+}
+function fadToActualM3s(fadVal, fadUnit, pressureVal, pressUnit) {
+  const fadM3s = fadVal * (fadUnit==='cfm' ? 4.719e-4 : fadUnit==='m3h' ? 1/3600 : 1/60000);
+  const pressBar = toBar(pressureVal, pressUnit);
+  const ratio = 1.01325 / (pressBar + 1.01325); // atm / abs
+  return fadM3s * ratio;
+}
+
+// ─── CALCULATE ───────────────────────────────────────────────────────────────
+function calculate() {
+  const mat = document.getElementById('pipeMaterial').value;
+  const r = velRecs[mat];
+  let Q_m3s, V_ms, D_mm, A_m2;
+
+  if(currentMode === 'find-pipe') {
+    let qRaw = parseFloat(document.getElementById('flowRate').value);
+    let vRaw = parseFloat(document.getElementById('velocity').value);
+    if(currentFluid === 'air' && document.getElementById('airFAD').value) {
+      const fad = parseFloat(document.getElementById('airFAD').value);
+      const pres = parseFloat(document.getElementById('airPressure').value);
+      Q_m3s = fadToActualM3s(fad, document.getElementById('fadUnit').value, pres, document.getElementById('pressUnit').value);
+    } else {
+      Q_m3s = toM3s(qRaw, document.getElementById('flowUnit').value);
+    }
+    V_ms = toMs(vRaw, document.getElementById('velUnit').value);
+    if(!Q_m3s || !V_ms) { alert('Please enter Flow Rate and Velocity'); return; }
+    A_m2 = Q_m3s / V_ms;
+    D_mm = Math.sqrt(4 * A_m2 / Math.PI) * 1000;
+
+  } else if(currentMode === 'find-velocity') {
+    let qRaw = parseFloat(document.getElementById('flowRate').value);
+    let dRaw = parseFloat(document.getElementById('diameter').value);
+    if(currentFluid === 'air' && document.getElementById('airFAD').value) {
+      const fad = parseFloat(document.getElementById('airFAD').value);
+      const pres = parseFloat(document.getElementById('airPressure').value);
+      Q_m3s = fadToActualM3s(fad, document.getElementById('fadUnit').value, pres, document.getElementById('pressUnit').value);
+    } else {
+      Q_m3s = toM3s(qRaw, document.getElementById('flowUnit').value);
+    }
+    D_mm = toMm(dRaw, document.getElementById('diamUnit').value);
+    if(!Q_m3s || !D_mm) { alert('Please enter Flow Rate and Diameter'); return; }
+    A_m2 = Math.PI * (D_mm/1000)**2 / 4;
+    V_ms = Q_m3s / A_m2;
+
+  } else { // find-flow
+    let vRaw = parseFloat(document.getElementById('velocity').value);
+    let dRaw = parseFloat(document.getElementById('diameter').value);
+    V_ms = toMs(vRaw, document.getElementById('velUnit').value);
+    D_mm = toMm(dRaw, document.getElementById('diamUnit').value);
+    if(!V_ms || !D_mm) { alert('Please enter Velocity and Diameter'); return; }
+    A_m2 = Math.PI * (D_mm/1000)**2 / 4;
+    Q_m3s = V_ms * A_m2;
+  }
+
+  // Display
+  document.getElementById('resDiam').textContent = D_mm.toFixed(1);
+  document.getElementById('resVel').textContent = V_ms.toFixed(2);
+  document.getElementById('resFlow').textContent = fromM3s(Q_m3s, 'm3h').toFixed(3);
+  document.getElementById('resArea').textContent = (A_m2 * 1e4).toFixed(3);
+
+  // Velocity status
+  let statusEl = document.getElementById('velStatus');
+  let statusTxt, statusCls;
+  if(V_ms < r.min) { statusTxt='TOO LOW'; statusCls='status-low'; }
+  else if(V_ms > r.max) { statusTxt='TOO HIGH'; statusCls='status-high'; }
+  else if(V_ms >= r.rec[0] && V_ms <= r.rec[1]) { statusTxt='OPTIMAL'; statusCls='status-ok'; }
+  else { statusTxt='ACCEPTABLE'; statusCls='status-ok'; }
+  statusEl.innerHTML = `<span class="result-status ${statusCls}">${statusTxt}</span>`;
+
+  // Gauge
+  const maxVel = r.max * 1.3;
+  const pct = Math.min(V_ms / maxVel * 100, 100);
+  const bar = document.getElementById('gaugeBar');
+  bar.style.width = pct + '%';
+  bar.style.background = statusCls === 'status-ok' ? 'var(--green)' : statusCls === 'status-high' ? 'var(--red)' : 'var(--accent-air)';
+
+  // Highlight nearest in pipe table
+  highlightNearestPipe(D_mm);
+  renderPipeGrid(D_mm);
+}
+
+function highlightNearestPipe(targetMm) {
+  const std = document.getElementById('pipeStd').value;
+  const data = pipes[std];
+  let best = 0, bestDiff = Infinity;
+  data.forEach((p,i) => {
+    const diff = Math.abs(p.id - targetMm);
+    if(diff < bestDiff) { bestDiff = diff; best = i; }
+  });
+  // next size up
+  let nextUp = best;
+  data.forEach((p,i) => {
+    if(p.id >= targetMm) {
+      if(i < nextUp || pipes[std][nextUp].id < targetMm) nextUp = i;
+    }
+  });
+  selectedPipeIdx = nextUp;
+  renderPipeTable(nextUp);
+}
+
+// ─── RENDER PIPE TABLE ───────────────────────────────────────────────────────
+function renderPipeTable(highlightIdx = -1) {
+  const std = document.getElementById('pipeStd').value;
+  const data = pipes[std];
+  const tbody = document.getElementById('pipeTableBody');
+  tbody.innerHTML = data.map((p,i) => {
+    const area = Math.PI * (p.id/1000)**2 / 4;
+    const q1 = (area * 1 * 3600).toFixed(3);
+    const q3 = (area * 3 * 3600).toFixed(3);
+    const hl = i === highlightIdx ? 'class="highlight-row"' : '';
+    return `<tr ${hl}><td>${p.size}</td><td>DN ${p.dn}</td><td>${p.od}</td><td>${p.id}</td><td>${p.wall}</td>
+      <td>${(area*1e4).toFixed(2)}</td><td>${q1}</td><td>${q3}</td></tr>`;
+  }).join('');
+}
+
+function renderPipeGrid(calcDmm = null) {
+  const std = document.getElementById('pipeStd').value;
+  const data = pipes[std];
+  const grid = document.getElementById('pipeGrid');
+  grid.innerHTML = data.map((p,i) => {
+    let cls = 'pipe-btn';
+    if(calcDmm !== null) {
+      if(p.id >= calcDmm && (i === 0 || pipes[std][i-1].id < calcDmm)) cls += ' recommended';
+    }
+    if(i === selectedPipeIdx) cls += ' selected';
+    return `<div class="${cls}" onclick="selectPipe(${i})">${p.size}<br><span style="font-size:10px;color:var(--muted)">ID ${p.id}mm</span></div>`;
+  }).join('');
+}
+
+function selectPipe(idx) {
+  selectedPipeIdx = idx;
+  const std = document.getElementById('pipeStd').value;
+  const p = pipes[std][idx];
+  document.getElementById('diameter').value = p.id;
+  document.getElementById('diamUnit').value = 'mm';
+  renderPipeGrid();
+  renderPipeTable(idx);
+}
+
+init();
+</script>
+</body>
+</html>

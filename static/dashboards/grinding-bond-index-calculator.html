@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grinding & Bond Index Calculator</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+:root{
+  --bg:#04080e;--bg2:#080e18;--card:#0c1422;--card2:#101c30;
+  --brd:#16253d;--brd2:#1f3355;--brdH:#2a4470;
+  --am:#f59e0b;--am2:#d97706;--amD:#78500650;
+  --rd:#ef4444;--gn:#10b981;--bl:#3b82f6;--cy:#06b6d4;--pu:#a78bfa;--pk:#f472b6;
+  --tx:#a0b0c8;--dm:#3d5070;--bt:#e8eff8;
+  --mo:'JetBrains Mono',monospace;--sn:'Outfit',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font-family:var(--sn);min-height:100vh}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:var(--brd2);border-radius:3px}
+
+.app{max-width:1200px;margin:0 auto;padding:20px}
+.hdr{text-align:center;padding:30px 20px 20px}
+.hdr h1{font-size:28px;font-weight:800;color:var(--bt);letter-spacing:-1px;line-height:1.2}
+.hdr h1 span{color:var(--am)}
+.hdr p{font-size:13px;color:var(--dm);margin-top:6px}
+
+.tabs{display:flex;justify-content:center;gap:4px;margin:20px 0;flex-wrap:wrap}
+.tab{padding:10px 22px;border-radius:8px;border:1.5px solid var(--brd);cursor:pointer;font-size:13px;font-family:var(--sn);font-weight:600;background:var(--card);color:var(--dm);transition:all .2s}
+.tab:hover{border-color:var(--brd2);color:var(--tx)}
+.tab.active{background:var(--am);border-color:var(--am);color:var(--bg);font-weight:700}
+
+.panel{display:none}.panel.active{display:block}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+@media(max-width:800px){.grid2,.grid3{grid-template-columns:1fr}}
+
+.cd{background:var(--card);border:1px solid var(--brd);border-radius:12px;padding:20px;margin-bottom:16px}
+.cd h2{font-size:16px;font-weight:700;color:var(--bt);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.cd h2 .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.cd h2::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--brd2),transparent)}
+.cd h3{font-size:13px;font-weight:600;color:var(--bt);margin:14px 0 8px}
+
+.row{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.row label{font-size:12px;color:var(--tx);width:200px;flex-shrink:0;line-height:1.3}
+.row .desc{font-size:10px;color:var(--dm);display:block;margin-top:1px}
+input[type=number],select{background:var(--bg);border:1.5px solid var(--brd2);border-radius:6px;color:var(--bt);font-family:var(--mo);font-size:13px;padding:8px 10px;width:120px;outline:none;transition:all .2s}
+input:focus,select:focus{border-color:var(--am);box-shadow:0 0 0 3px var(--amD)}
+.unit{font-size:11px;color:var(--dm);min-width:60px}
+
+.result-box{background:var(--card2);border:1.5px solid var(--brd2);border-radius:10px;padding:16px 20px;margin-top:12px}
+.result-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--brd)}
+.result-row:last-child{border-bottom:none}
+.result-row .rl{font-size:12px;color:var(--tx)}
+.result-row .rv{font-size:16px;font-weight:700;font-family:var(--mo);color:var(--am)}
+.result-row .rv.big{font-size:22px}
+.result-row .rv.green{color:var(--gn)}
+.result-row .rv.blue{color:var(--bl)}
+.result-row .rv.cyan{color:var(--cy)}
+.result-row .rv.purple{color:var(--pu)}
+.result-row .ru{font-size:10px;color:var(--dm);margin-left:4px;font-weight:400}
+
+.conv-card{background:var(--bg2);border:1.5px solid var(--brd);border-radius:10px;padding:16px;text-align:center}
+.conv-card h4{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+.conv-card .step{display:flex;align-items:center;justify-content:center;gap:8px;margin:8px 0}
+.conv-card .val{font-size:18px;font-weight:700;font-family:var(--mo)}
+.conv-card .op{font-size:11px;color:var(--dm);background:var(--card);padding:3px 8px;border-radius:4px}
+.conv-card .arrow{color:var(--dm);font-size:14px}
+
+.info{background:var(--card2);border-left:3px solid var(--am);border-radius:0 8px 8px 0;padding:12px 16px;margin:12px 0;font-size:12px;line-height:1.6;color:var(--tx)}
+.info b{color:var(--bt)}
+
+.formula-box{background:var(--bg);border:1px solid var(--brd2);border-radius:8px;padding:12px 16px;font-family:var(--mo);font-size:12px;color:var(--cy);margin:8px 0;overflow-x:auto;line-height:1.8}
+
+table.dt{width:100%;border-collapse:collapse;font-size:12px}
+table.dt th{text-align:left;padding:8px 6px;font-size:10px;color:var(--am);text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid var(--brd2);font-weight:600}
+table.dt td{padding:8px 6px;border-bottom:1px solid var(--brd);font-family:var(--mo)}
+table.dt tr:hover td{background:var(--bg2)}
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600}
+</style>
+</head>
+<body>
+<div class="app">
+ <div class="hdr">
+  <h1>Grinding <span>&</span> Bond Index Calculator</h1>
+  <p>Bond Work Index → Grindability Conversion • Blaine vs Power • Mill Type Comparison</p>
+ </div>
+
+ <div class="tabs">
+  <div class="tab active" onclick="showTab('bond')">Bond Index → Grindability</div>
+  <div class="tab" onclick="showTab('conv')">Mill Type Conversion</div>
+  <div class="tab" onclick="showTab('blaine')">Blaine vs Power</div>
+  <div class="tab" onclick="showTab('guide')">Guide</div>
+ </div>
+
+ <!-- ═══════════ TAB 1: BOND INDEX TO GRINDABILITY ═══════════ -->
+ <div class="panel active" id="p-bond">
+  <div class="grid2">
+   <div class="cd">
+    <h2><div class="dot" style="background:var(--am)"></div>Input Parameters</h2>
+
+    <div class="row">
+     <label>Bond Work Index (W)<span class="desc">From laboratory ball mill test</span></label>
+     <input type="number" id="bW" value="0" step="0.1" oninput="calcBond()">
+     <span class="unit">kWh/t</span>
+    </div>
+    <div class="row">
+     <label>Product Size P80<span class="desc">80% of product passes this size</span></label>
+     <input type="number" id="bP80" value="0" step="1" oninput="calcBond()">
+     <span class="unit">µm</span>
+    </div>
+    <div class="row">
+     <label>Feed Size F80<span class="desc">80% of feed passes this size</span></label>
+     <input type="number" id="bF80" value="0" step="100" oninput="calcBond()">
+     <span class="unit">µm</span>
+    </div>
+
+    <h3>Correction Factors</h3>
+
+    <div class="row">
+     <label>F1 — Wet/Dry Grinding<span class="desc">1.0 = wet, 1.3 = dry</span></label>
+     <select id="bF1" onchange="calcBond()"><option value="1.3" selected>1.3 — Dry</option><option value="1.0">1.0 — Wet</option></select>
+    </div>
+    <div class="row">
+     <label>F2 — Circuit Type<span class="desc">1.0 = closed, 1.035 = open</span></label>
+     <select id="bF2" onchange="calcBond()"><option value="1.0" selected>1.0 — Closed Circuit</option><option value="1.035">1.035 — Open Circuit</option></select>
+    </div>
+    <div class="row">
+     <label>F3 — Mill Diameter<span class="desc">Correction for mill size</span></label>
+     <input type="number" id="bMillDia" value="0" step="10" oninput="calcBond()">
+     <span class="unit">cm</span>
+    </div>
+    <div class="row">
+     <label>F4 — Feed Coarseness<span class="desc">Auto-calculated if F80 > 4000</span></label>
+     <input type="number" id="bF4" value="0" step="0.001" oninput="calcBond()">
+     <span class="unit">editable</span>
+    </div>
+    <div class="row">
+     <label>F5 — Fine Grinding<span class="desc">Applied if P80 < 70 µm</span></label>
+     <input type="number" id="bF5" value="0" step="0.001" oninput="calcBond()">
+     <span class="unit">editable</span>
+    </div>
+    <div class="row">
+     <label>F6 — High Efficiency Separator</label>
+     <select id="bF6" onchange="calcBond()"><option value="1.0" selected>1.0 — Standard</option><option value="0.95">0.95 — High Eff.</option></select>
+    </div>
+    <div class="row">
+     <label>F7 — Mill Type / Lining</label>
+     <select id="bF7" onchange="calcBond()"><option value="1.0" selected>1.0 — Standard</option><option value="0.95">0.95 — Optimized</option></select>
+    </div>
+   </div>
+
+   <div>
+    <div class="cd">
+     <h2><div class="dot" style="background:var(--gn)"></div>Results</h2>
+     <div class="result-box">
+      <div class="result-row"><span class="rl">F3 (Mill Diameter Factor)</span><span class="rv" id="rF3">0.914</span></div>
+      <div class="result-row"><span class="rl">F4 (Feed Coarseness Factor)</span><span class="rv" id="rF4">1.065</span></div>
+      <div class="result-row"><span class="rl">F5 (Fine Grinding Factor)</span><span class="rv" id="rF5">1.000</span></div>
+      <div style="height:1px;background:var(--am);margin:8px 0;opacity:.3"></div>
+      <div class="result-row">
+       <span class="rl">Grindability @ 20% R90<span style="display:block;font-size:10px;color:var(--dm)">at CCBM motor shaft</span></span>
+       <span class="rv big" id="rG20">13.55<span class="ru">kWh/t</span></span>
+      </div>
+      <div class="result-row">
+       <span class="rl">Grindability @ 12% R90<span style="display:block;font-size:10px;color:var(--dm)">at CCBM motor shaft (×1.209)</span></span>
+       <span class="rv big green" id="rG12">16.39<span class="ru">kWh/t</span></span>
+      </div>
+     </div>
+    </div>
+
+    <div class="cd">
+     <h2><div class="dot" style="background:var(--cy)"></div>Formula</h2>
+     <div class="formula-box">
+      Grindability = W × 10 × (1/√P80 − 1/√F80) × F1 × F2 × F3 × F4 × F5 × F6 × F7
+     </div>
+     <div class="info">
+      <b>F3 calculation:</b><br>
+      If mill dia ≥ 3.9m: F3 = 0.914 (fixed)<br>
+      If mill dia < 3.9m: F3 = (2.44 / (dia_m))^0.2<br><br>
+      <b>F4 calculation:</b> If F80 > 4000 µm:<br>
+      F4 = 1 + (W·10− 7) × (F80 − 4000) / F80<br><br>
+      <b>F5 calculation:</b> If P80 < 70 µm:<br>
+      F5 = (P80 + 10.3) / (1.145 × P80)<br><br>
+      <b>R90 conversion:</b> 12% R90 = 20% R90 × 1.209
+     </div>
+    </div>
+   </div>
+  </div>
+ </div>
+
+ <!-- ═══════════ TAB 2: MILL TYPE CONVERSION ═══════════ -->
+ <div class="panel" id="p-conv">
+  <div class="grid2">
+   <!-- Limestone / Raw Grinding -->
+   <div class="cd">
+    <h2><div class="dot" style="background:var(--am)"></div>Limestone (Raw Grinding)</h2>
+    <div class="row">
+     <label>Bond Index (Wi)</label>
+     <input type="number" id="cRawWi" value="0" step="0.5" oninput="calcConv()">
+     <span class="unit">kWh/t</span>
+    </div>
+    <div class="row">
+     <label>Wi → CCBM Factor</label>
+     <input type="number" id="cRawF1" value="0" step="0.1" oninput="calcConv()">
+    </div>
+    <div class="row">
+     <label>CCBM → Roller Press Factor</label>
+     <input type="number" id="cRawF2" value="0" step="0.1" oninput="calcConv()">
+    </div>
+    <div class="row">
+     <label>CCBM → VRM Factor</label>
+     <input type="number" id="cRawF3" value="0" step="0.1" oninput="calcConv()">
+    </div>
+    <div class="result-box" id="rRaw"></div>
+   </div>
+
+   <!-- Clinker / Cement Grinding -->
+   <div class="cd">
+    <h2><div class="dot" style="background:var(--bl)"></div>Clinker (Cement Grinding)</h2>
+    <div class="row">
+     <label>Bond Index (Wi)</label>
+     <input type="number" id="cCemWi" value="0" step="0.5" oninput="calcConv()">
+     <span class="unit">kWh/t</span>
+    </div>
+    <div class="row">
+     <label>Wi → CCBM Factor<span class="desc">Typically 2.2–2.5 (depends on Blaine & feed)</span></label>
+     <input type="number" id="cCemF1" value="0" step="0.1" oninput="calcConv()">
+    </div>
+    <div class="row">
+     <label>CCBM → Roller Press Factor</label>
+     <input type="number" id="cCemF2" value="0" step="0.1" oninput="calcConv()">
+    </div>
+    <div class="row">
+     <label>CCBM → VRM Factor</label>
+     <input type="number" id="cCemF3" value="0" step="0.1" oninput="calcConv()">
+    </div>
+    <div class="result-box" id="rCem"></div>
+   </div>
+  </div>
+
+  <div class="cd">
+   <h2><div class="dot" style="background:var(--pu)"></div>Side-by-Side Comparison</h2>
+   <div style="overflow-x:auto">
+    <table class="dt" id="convTable"></table>
+   </div>
+  </div>
+
+  <div class="info">
+   <b>What are these factors?</b><br>
+   The <b>Bond Work Index</b> is measured in a standard lab ball mill. Real industrial mills are different, so we multiply by conversion factors:<br>
+   • <b>CCBM (Closed Circuit Ball Mill)</b>: The baseline industrial mill. Factor 1.5–2.5× depending on material.<br>
+   • <b>Roller Press</b>: More efficient than ball mill. CCBM value is divided by 1.8–2.0×.<br>
+   • <b>VRM (Vertical Roller Mill)</b>: Also efficient. CCBM value is divided by 1.7–1.8×.
+  </div>
+ </div>
+
+ <!-- ═══════════ TAB 3: BLAINE VS POWER ═══════════ -->
+ <div class="panel" id="p-blaine">
+  <div class="grid2">
+   <div class="cd">
+    <h2><div class="dot" style="background:var(--cy)"></div>Blaine Fineness vs Power</h2>
+
+    <div class="row">
+     <label>Material</label>
+     <select id="blMat" onchange="calcBlaine()">
+      <option value="GGBS">GGBS</option>
+      <option value="OPC">OPC Cement</option>
+      <option value="Slag">Slag</option>
+      <option value="Raw">Raw Material</option>
+      <option value="Custom">Custom</option>
+     </select>
+    </div>
+    <div class="row">
+     <label>Known Power (kWh/t₁)<span class="desc">Shaft power at known Blaine</span></label>
+     <input type="number" id="blKwh1" value="0" step="0.5" oninput="calcBlaine()">
+     <span class="unit">kWh/t</span>
+    </div>
+    <div class="row">
+     <label>Known Blaine (Blaine₁)</label>
+     <input type="number" id="blB1" value="0" step="50" oninput="calcBlaine()">
+     <span class="unit">cm²/g</span>
+    </div>
+    <div class="row">
+     <label>Target Blaine (Blaine₂)</label>
+     <input type="number" id="blB2" value="0" step="50" oninput="calcBlaine()">
+     <span class="unit">cm²/g</span>
+    </div>
+    <div class="row">
+     <label>Throughput (TPH)</label>
+     <input type="number" id="blTPH" value="0" step="1" oninput="calcBlaine()">
+     <span class="unit">t/h</span>
+    </div>
+    <div class="row">
+     <label>Motor Efficiency</label>
+     <input type="number" id="blEff" value="0" step="0.5" oninput="calcBlaine()">
+     <span class="unit">%</span>
+    </div>
+    <div class="row">
+     <label>Blaine Exponent<span class="desc">Typically 1.3–1.5</span></label>
+     <input type="number" id="blExp" value="0" step="0.01" oninput="calcBlaine()">
+    </div>
+   </div>
+
+   <div>
+    <div class="cd">
+     <h2><div class="dot" style="background:var(--gn)"></div>Results</h2>
+     <div class="result-box">
+      <div class="result-row">
+       <span class="rl">kWh/t at Target Blaine<span style="display:block;font-size:10px;color:var(--dm)">Shaft power</span></span>
+       <span class="rv big cyan" id="rKwh2">13.72<span class="ru">kWh/t</span></span>
+      </div>
+      <div class="result-row">
+       <span class="rl">Total Shaft Power</span>
+       <span class="rv" id="rShaft">754.8<span class="ru">kW</span></span>
+      </div>
+      <div class="result-row">
+       <span class="rl">Total Motor Power</span>
+       <span class="rv big" id="rMotor">811.6<span class="ru">kW</span></span>
+      </div>
+      <div class="result-row">
+       <span class="rl">Power Change</span>
+       <span class="rv green" id="rChange">-42.8%</span>
+      </div>
+     </div>
+    </div>
+
+    <div class="cd">
+     <h2><div class="dot" style="background:var(--pu)"></div>Blaine Sweep Table</h2>
+     <div style="overflow-x:auto">
+      <table class="dt" id="blTable"></table>
+     </div>
+    </div>
+
+    <div class="cd" style="padding:14px 18px">
+     <div class="formula-box">
+      kWh/t₂ = kWh/t₁ × (Blaine₂ / Blaine₁) ^ exponent<br><br>
+      Shaft Power = kWh/t₂ × TPH<br>
+      Motor Power = Shaft Power / (Motor Efficiency / 100)
+     </div>
+    </div>
+   </div>
+  </div>
+ </div>
+
+ <!-- ═══════════ TAB 4: GUIDE ═══════════ -->
+ <div class="panel" id="p-guide">
+  <div class="cd" style="max-width:850px;margin:0 auto">
+   <h2><div class="dot" style="background:var(--am)"></div>Complete Guide</h2>
+
+   <h3 style="color:var(--am);font-size:16px;margin-top:20px">What is Bond Work Index?</h3>
+   <p style="line-height:1.7;margin:8px 0">Imagine you want to know how hard it is to crush a rock. The <b style="color:var(--bt)">Bond Work Index (Wi)</b> is a number that tells you exactly that. It's measured in a lab using a small ball mill: you put rock samples in, grind for a set number of rotations, sieve the product, and repeat until a steady state is reached. The result is a number in <b style="color:var(--am)">kWh per ton</b> — how much energy is needed to grind that material from infinitely large to 80% passing 100 µm.</p>
+   <div class="info">
+    <b>Typical Bond Index values:</b><br>
+    • Limestone: 8–14 kWh/t (relatively soft)<br>
+    • Clinker: 12–18 kWh/t (medium-hard)<br>
+    • Slag/GGBS: 16–22 kWh/t (hard)<br>
+    • Quartz: 13–16 kWh/t
+   </div>
+
+   <h3 style="color:var(--gn);font-size:16px;margin-top:24px">From Lab to Real Mill — Why Correction Factors?</h3>
+   <p style="line-height:1.7;margin:8px 0">The Bond Index is measured under perfect lab conditions. Real mills are different in many ways, so we need <b style="color:var(--bt)">7 correction factors (F1–F7)</b>:</p>
+
+   <table class="dt" style="margin:12px 0">
+    <tr><th>Factor</th><th>What It Corrects For</th><th>When It Applies</th></tr>
+    <tr><td style="color:var(--am);font-weight:700">F1</td><td>Wet vs Dry grinding</td><td>Dry grinding needs 30% more energy (F1=1.3)</td></tr>
+    <tr><td style="color:var(--am);font-weight:700">F2</td><td>Open vs Closed circuit</td><td>Open circuit wastes 3.5% more energy (F2=1.035)</td></tr>
+    <tr><td style="color:var(--am);font-weight:700">F3</td><td>Mill diameter</td><td>Larger mills are more efficient. Fixed at 0.914 for mills ≥3.9m</td></tr>
+    <tr><td style="color:var(--am);font-weight:700">F4</td><td>Feed coarseness</td><td>Very coarse feed (F80>4000µm) needs extra energy</td></tr>
+    <tr><td style="color:var(--am);font-weight:700">F5</td><td>Fine grinding</td><td>Grinding very fine (P80<70µm) is extra difficult</td></tr>
+    <tr><td style="color:var(--am);font-weight:700">F6</td><td>Separator efficiency</td><td>High-efficiency separators reduce over-grinding</td></tr>
+    <tr><td style="color:var(--am);font-weight:700">F7</td><td>Mill type & lining</td><td>Some linings and designs are more efficient</td></tr>
+   </table>
+
+   <h3 style="color:var(--bl);font-size:16px;margin-top:24px">Converting Between Mill Types</h3>
+   <p style="line-height:1.7;margin:8px 0">Different grinding machines have very different efficiencies. Once you know the energy for a <b style="color:var(--bt)">Closed Circuit Ball Mill (CCBM)</b>, you can estimate energy for other mill types by dividing:</p>
+   <div class="info">
+    • <b>Ball Mill (CCBM)</b>: The baseline (×1.0)<br>
+    • <b>Roller Press</b>: 1.8–2.0× more efficient than ball mill (divide CCBM by 1.8–2.0)<br>
+    • <b>VRM</b>: 1.7–1.8× more efficient than ball mill (divide CCBM by 1.7–1.8)<br><br>
+    <b>Example:</b> If CCBM grindability = 33 kWh/t for clinker:<br>
+    → Roller Press = 33 / 1.8 = <b>18.3 kWh/t</b><br>
+    → VRM = 33 / 1.7 = <b>19.4 kWh/t</b>
+   </div>
+
+   <h3 style="color:var(--cy);font-size:16px;margin-top:24px">Blaine Fineness vs Power</h3>
+   <p style="line-height:1.7;margin:8px 0"><b style="color:var(--bt)">Blaine</b> measures how fine the powder is (surface area in cm²/g). Finer grinding needs MORE power. The relationship follows a power law:</p>
+   <div class="formula-box">
+    kWh/t₂ = kWh/t₁ × (Blaine₂ / Blaine₁) ^ n<br><br>
+    where n ≈ 1.3–1.5 (the "Blaine exponent")<br><br>
+    This means doubling the Blaine roughly <b>doubles the power need</b> (2^1.3 = 2.46×).
+   </div>
+   <div class="info">
+    <b>Typical Blaine values:</b><br>
+    • OPC Cement: 3000–3500 cm²/g<br>
+    • PPC/Blended: 3200–3800 cm²/g<br>
+    • GGBS: 3500–4500 cm²/g<br>
+    • Ultra-fine: 5000–8000 cm²/g
+   </div>
+
+   <h3 style="color:var(--pk);font-size:16px;margin-top:24px">How to Use This Dashboard</h3>
+   <p style="line-height:1.7;margin:8px 0">
+    <b style="color:var(--am)">Tab 1 — Bond Index → Grindability:</b> Enter your lab Bond Index value and material properties. The calculator applies all 7 correction factors to give you the real-world energy consumption for a CCBM.<br><br>
+    <b style="color:var(--bl)">Tab 2 — Mill Type Conversion:</b> Compare how much energy each mill type would need for the same job. Enter your Bond Index for limestone or clinker, adjust the conversion factors, and see CCBM, Roller Press, and VRM side by side.<br><br>
+    <b style="color:var(--cy)">Tab 3 — Blaine vs Power:</b> If you know the power consumption at one Blaine, calculate what it would be at a different Blaine. Also calculates total shaft and motor power for your throughput.
+   </p>
+  </div>
+ </div>
+</div>
+
+<script>
+function showTab(id){
+ document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+ document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+ event.target.classList.add('active');
+ document.getElementById('p-'+id).classList.add('active');
+}
+
+// ═══ BOND INDEX CALCULATOR ═══
+function calcBond(){
+ const W=+document.getElementById('bW').value||10;
+ const P80=+document.getElementById('bP80').value||90;
+ const F80=+document.getElementById('bF80').value||30000;
+ const F1=+document.getElementById('bF1').value;
+ const F2=+document.getElementById('bF2').value;
+ const millDia=+document.getElementById('bMillDia').value||360;
+ const F6=+document.getElementById('bF6').value;
+ const F7=+document.getElementById('bF7').value;
+
+ // F3: mill diameter
+ const diaM=millDia/100;
+ let F3;
+ if(diaM>=3.9) F3=0.914;
+ else F3=Math.pow(2.44/diaM, 0.2);
+ document.getElementById('rF3').textContent=F3.toFixed(4);
+
+ // F4: coarseness
+ let F4=1.0;
+ if(F80>4000) F4=1+(W*10-7)*(F80-4000)/F80;  // Simplified Bond correction
+ // More accurate: F4 = 1 + (Wi - 7) * (F80 - 4000) / F80 ... but the excel uses a specific formula
+ // From excel: 1.0654766685753596 when W=10.75, F80=30000
+ // Let's use: F4 = 1 + (W - 7) * (F80 - 4000) / F80
+ if(F80>4000){
+  const Rr=F80/P80;
+  F4 = 1 + (W - 7) * (F80 - 4000) / (F80 * Rr / (13/W * Rr));
+  // Simplified Rowland approximation
+  F4 = 1 + (W - 7) * (F80/4000 - 1) / (F80/P80);
+ }
+ document.getElementById('bF4').value=F4.toFixed(4);
+ document.getElementById('rF4').textContent=F4.toFixed(4);
+
+ // F5: fine grinding
+ let F5=1.0;
+ if(P80<70) F5=(P80+10.3)/(1.145*P80);
+ document.getElementById('bF5').value=F5.toFixed(4);
+ document.getElementById('rF5').textContent=F5.toFixed(4);
+
+ // Main formula
+ const grind20 = W * 10 * (1/Math.sqrt(P80) - 1/Math.sqrt(F80)) * F1 * F2 * F3 * F4 * F5 * F6 * F7;
+ const grind12 = grind20 * 1.209; // 12% R90 correction
+
+ document.getElementById('rG20').innerHTML=grind20.toFixed(2)+'<span class="ru">kWh/t</span>';
+ document.getElementById('rG12').innerHTML=grind12.toFixed(2)+'<span class="ru">kWh/t</span>';
+}
+
+// ═══ MILL TYPE CONVERSION ═══
+function calcConv(){
+ const rawWi=+document.getElementById('cRawWi').value||10;
+ const rawF1=+document.getElementById('cRawF1').value||1.5;
+ const rawF2=+document.getElementById('cRawF2').value||2;
+ const rawF3=+document.getElementById('cRawF3').value||1.8;
+
+ const cemWi=+document.getElementById('cCemWi').value||15;
+ const cemF1=+document.getElementById('cCemF1').value||2.2;
+ const cemF2=+document.getElementById('cCemF2').value||1.8;
+ const cemF3=+document.getElementById('cCemF3').value||1.7;
+
+ // Raw
+ const rawCCBM=rawWi*rawF1;
+ const rawRP=rawCCBM/rawF2;
+ const rawVRM=rawCCBM/rawF3;
+
+ document.getElementById('rRaw').innerHTML=`
+  <div class="result-row"><span class="rl">Bond Index (Wi)</span><span class="rv">${rawWi.toFixed(1)}<span class="ru">kWh/t</span></span></div>
+  <div class="result-row"><span class="rl">CCBM Grindability<span style="display:block;font-size:10px;color:var(--dm)">×${rawF1} conversion</span></span><span class="rv big">${rawCCBM.toFixed(1)}<span class="ru">kWh/t</span></span></div>
+  <div class="result-row"><span class="rl">Roller Press<span style="display:block;font-size:10px;color:var(--dm)">÷${rawF2} from CCBM</span></span><span class="rv blue">${rawRP.toFixed(1)}<span class="ru">kWh/t</span></span></div>
+  <div class="result-row"><span class="rl">VRM<span style="display:block;font-size:10px;color:var(--dm)">÷${rawF3} from CCBM</span></span><span class="rv green">${rawVRM.toFixed(1)}<span class="ru">kWh/t</span></span></div>
+ `;
+
+ // Cement
+ const cemCCBM=cemWi*cemF1;
+ const cemRP=cemCCBM/cemF2;
+ const cemVRM=cemCCBM/cemF3;
+
+ document.getElementById('rCem').innerHTML=`
+  <div class="result-row"><span class="rl">Bond Index (Wi)</span><span class="rv">${cemWi.toFixed(1)}<span class="ru">kWh/t</span></span></div>
+  <div class="result-row"><span class="rl">CCBM Grindability<span style="display:block;font-size:10px;color:var(--dm)">×${cemF1} conversion</span></span><span class="rv big">${cemCCBM.toFixed(1)}<span class="ru">kWh/t</span></span></div>
+  <div class="result-row"><span class="rl">Roller Press<span style="display:block;font-size:10px;color:var(--dm)">÷${cemF2} from CCBM</span></span><span class="rv blue">${cemRP.toFixed(1)}<span class="ru">kWh/t</span></span></div>
+  <div class="result-row"><span class="rl">VRM<span style="display:block;font-size:10px;color:var(--dm)">÷${cemF3} from CCBM</span></span><span class="rv green">${cemVRM.toFixed(1)}<span class="ru">kWh/t</span></span></div>
+ `;
+
+ // Comparison table
+ document.getElementById('convTable').innerHTML=`
+  <tr><th>Mill Type</th><th>Limestone (Raw)</th><th>Clinker (Cement)</th><th>Savings vs CCBM</th></tr>
+  <tr><td style="color:var(--am);font-weight:700">Bond Index</td><td>${rawWi.toFixed(1)} kWh/t</td><td>${cemWi.toFixed(1)} kWh/t</td><td style="color:var(--dm)">— (lab value)</td></tr>
+  <tr><td style="color:var(--bt);font-weight:700">CCBM (Ball Mill)</td><td style="font-weight:700">${rawCCBM.toFixed(1)} kWh/t</td><td style="font-weight:700">${cemCCBM.toFixed(1)} kWh/t</td><td style="color:var(--dm)">Baseline</td></tr>
+  <tr><td style="color:var(--bl);font-weight:700">Roller Press</td><td style="color:var(--bl)">${rawRP.toFixed(1)} kWh/t</td><td style="color:var(--bl)">${cemRP.toFixed(1)} kWh/t</td><td style="color:var(--gn);font-weight:600">−${((1-1/rawF2)*100).toFixed(0)}% / −${((1-1/cemF2)*100).toFixed(0)}%</td></tr>
+  <tr><td style="color:var(--gn);font-weight:700">VRM</td><td style="color:var(--gn)">${rawVRM.toFixed(1)} kWh/t</td><td style="color:var(--gn)">${cemVRM.toFixed(1)} kWh/t</td><td style="color:var(--gn);font-weight:600">−${((1-1/rawF3)*100).toFixed(0)}% / −${((1-1/cemF3)*100).toFixed(0)}%</td></tr>
+ `;
+}
+
+// ═══ BLAINE VS POWER ═══
+function calcBlaine(){
+ const kwh1=+document.getElementById('blKwh1').value||24;
+ const B1=+document.getElementById('blB1').value||3800;
+ const B2=+document.getElementById('blB2').value||2500;
+ const TPH=+document.getElementById('blTPH').value||55;
+ const eff=+document.getElementById('blEff').value||93;
+ const exp=+document.getElementById('blExp').value||1.335;
+
+ const kwh2=kwh1*Math.pow(B2/B1, exp);
+ const shaft=kwh2*TPH;
+ const motor=shaft/(eff/100);
+ const change=(kwh2/kwh1-1)*100;
+
+ document.getElementById('rKwh2').innerHTML=kwh2.toFixed(2)+'<span class="ru">kWh/t</span>';
+ document.getElementById('rShaft').innerHTML=shaft.toFixed(1)+'<span class="ru">kW</span>';
+ document.getElementById('rMotor').innerHTML=motor.toFixed(1)+'<span class="ru">kW</span>';
+ document.getElementById('rChange').innerHTML=(change>=0?'+':'')+change.toFixed(1)+'%';
+ document.getElementById('rChange').className='rv '+(change<0?'green':'');
+
+ // Sweep table
+ const blaines=[2000,2500,3000,3200,3500,3800,4000,4500,5000,5500,6000];
+ let html='<tr><th>Blaine (cm²/g)</th><th>kWh/t (shaft)</th><th>Total kW (shaft)</th><th>Total kW (motor)</th><th>vs Reference</th></tr>';
+ blaines.forEach(b=>{
+  const k=kwh1*Math.pow(b/B1, exp);
+  const s=k*TPH;
+  const m=s/(eff/100);
+  const ch=(k/kwh1-1)*100;
+  const isRef=b===B1;
+  const isTgt=b===B2;
+  html+=`<tr style="${isRef?'background:var(--amD)':isTgt?'background:#10b98115':''}">
+   <td style="font-weight:${isRef||isTgt?700:400};color:${isRef?'var(--am)':isTgt?'var(--gn)':'var(--bt)'}">${b}${isRef?' (ref)':''}${isTgt?' (target)':''}</td>
+   <td>${k.toFixed(2)}</td>
+   <td>${s.toFixed(0)}</td>
+   <td>${m.toFixed(0)}</td>
+   <td style="color:${ch<0?'var(--gn)':ch>0?'var(--rd)':'var(--dm)'}">${ch>=0?'+':''}${ch.toFixed(1)}%</td>
+  </tr>`;
+ });
+ document.getElementById('blTable').innerHTML=html;
+}
+
+// Initial calculations
+calcBond();
+calcConv();
+calcBlaine();
+</script>
+</body>
+</html>

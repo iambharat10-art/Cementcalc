@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VRM Heat & Mass Balance — Combined Dashboard</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+:root{--bg:#060a12;--bg2:#0b1018;--card:#0f1726;--card2:#142035;--brd:#1a2840;--brd2:#243654;
+--am:#f59e0b;--am2:#d97706;--am3:#92400e;--amG:#f59e0b25;
+--rd:#ef4444;--rd2:#7f1d1d;--gn:#10b981;--gn2:#064e3b;
+--bl:#3b82f6;--bl2:#1e3a5f;--cy:#06b6d4;--pu:#8b5cf6;
+--tx:#b8c4d6;--dm:#4f6080;--bt:#eaf0f8;
+--mo:'IBM Plex Mono',monospace;--sn:'Outfit',sans-serif;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font-family:var(--sn);min-height:100vh;font-size:13px}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-thumb{background:var(--brd2);border-radius:3px}
+input[type=number],input[type=text],select{background:var(--bg);border:1px solid var(--brd2);border-radius:5px;color:var(--bt);font-family:var(--mo);font-size:12px;padding:4px 6px;outline:none;transition:border .2s}
+input:focus,select:focus{border-color:var(--am);box-shadow:0 0 0 2px var(--amG)}
+input[type=number]{width:80px;text-align:right}
+.app{display:flex;flex-direction:column;height:100vh}
+.hdr{background:linear-gradient(180deg,var(--card),var(--bg2));border-bottom:1px solid var(--brd);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.hdr h1{font-size:15px;font-weight:700;color:var(--bt)}
+.hdr p{font-size:10px;color:var(--dm);margin-top:1px}
+.msel{display:flex;gap:3px;background:var(--bg);border-radius:8px;padding:3px;border:1px solid var(--brd)}
+.mb{padding:6px 14px;border-radius:6px;border:none;cursor:pointer;font-size:11px;font-family:var(--sn);font-weight:500;background:transparent;color:var(--dm);transition:all .2s}
+.mb:hover{color:var(--tx)}.mb.active{font-weight:700;color:var(--bg)}
+.mb.rm.active{background:var(--am)}.mb.cm.active{background:var(--rd)}.mb.cs.active{background:var(--bl)}.mb.gd.active{background:var(--gn)}
+.tabs{display:flex;gap:2px}.tab{padding:5px 12px;border-radius:6px;border:none;cursor:pointer;font-size:11px;font-family:var(--sn);font-weight:500;background:transparent;color:var(--dm);transition:all .15s}
+.tab:hover{color:var(--tx);background:var(--card)}.tab.active{background:var(--brd2);color:var(--bt);font-weight:600}
+.main{display:flex;flex:1;overflow:hidden}
+.side{width:285px;min-width:285px;background:var(--card);border-right:1px solid var(--brd);padding:12px;overflow-y:auto}
+.cnt{flex:1;padding:16px 20px;overflow-y:auto}
+.sl{font-size:9px;color:var(--am);text-transform:uppercase;letter-spacing:1.6px;font-weight:700;margin:12px 0 6px;padding-bottom:3px;border-bottom:1px solid var(--brd)}
+.ir{display:flex;align-items:center;gap:5px;margin-bottom:5px}
+.ir label{font-size:10.5px;color:var(--dm);width:100px;flex-shrink:0}.ir .u{font-size:9px;color:var(--dm);min-width:36px}
+.kg{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.kp{flex:1 1 150px;min-width:135px;padding:11px 13px;background:var(--card);border-radius:9px;border:1px solid var(--brd)}
+.kp .kl{font-size:9px;color:var(--dm);text-transform:uppercase;letter-spacing:.7px;margin-bottom:2px}
+.kp .kv{font-size:20px;font-weight:700;font-family:var(--mo);line-height:1.1}.kp .ku{font-size:10px;color:var(--dm);margin-left:3px;font-weight:400}
+.cd{background:var(--card);border-radius:10px;border:1px solid var(--brd);padding:16px;margin-bottom:14px}
+.cd h3{font-size:13px;font-weight:600;color:var(--bt);margin-bottom:12px;display:flex;align-items:center;gap:7px}
+.cd h3::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--brd2),transparent)}
+table.dt{width:100%;border-collapse:collapse;font-size:11px;font-family:var(--mo)}
+table.dt th{text-align:right;padding:6px 5px;font-size:9px;color:var(--am);text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid var(--am3);font-weight:600;white-space:nowrap}
+table.dt th:first-child{text-align:left}
+table.dt td{padding:5px;text-align:right;border-bottom:1px solid var(--brd)}
+table.dt td:first-child{text-align:left;color:var(--bt);font-weight:500;font-family:var(--sn)}
+table.dt tr:hover td{background:var(--bg2)}
+.bc{height:7px;background:var(--brd);border-radius:4px;overflow:hidden;margin:2px 0}.bf{height:100%;border-radius:4px;transition:width .4s}
+.hr{margin-bottom:9px}.hr .rh{display:flex;justify-content:space-between;font-size:11px;margin-bottom:1px}.hr .pc{font-size:9px;color:var(--dm);text-align:right;margin-top:1px}
+.tw{display:flex;gap:14px;flex-wrap:wrap}.tw>*{flex:1 1 350px;min-width:0}
+.mr{display:flex;gap:3px;align-items:center;margin-bottom:3px}.mr .mn{font-size:9.5px;color:var(--dm);width:62px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mr input{width:44px;padding:3px 4px;font-size:10px}.mr .mu{font-size:8px;color:var(--dm)}
+.sb{padding:5px 10px;border-radius:5px;border:1px solid var(--brd2);background:var(--bg2);color:var(--tx);font-size:10px;cursor:pointer;font-family:var(--sn);transition:all .15s}
+.sb:hover{border-color:var(--am);color:var(--am)}.sb.ap{background:var(--am3);border-color:var(--am);color:#fbbf24;font-weight:600}.sb.ap:hover{background:var(--am);color:var(--bg)}
+.sb.dl{border-color:var(--rd2);color:var(--rd)}.sb.dl:hover{background:var(--rd2)}.sb.ad{border-color:var(--gn2);color:var(--gn)}.sb.ad:hover{background:var(--gn2)}
+.st{width:100%;border-collapse:collapse;font-size:10px}.st th{padding:5px 3px;text-align:center;font-size:8px;color:var(--am);text-transform:uppercase;letter-spacing:.3px;border-bottom:2px solid var(--am3);font-weight:600;white-space:nowrap}
+.st td{padding:3px 2px;text-align:center;border-bottom:1px solid var(--brd)}.st input[type=number]{width:50px;padding:3px;font-size:10px;text-align:center}.st input[type=text]{width:68px;padding:3px;font-size:10px}
+.tg{display:flex;align-items:center;gap:6px;margin:6px 0}.tg label{font-size:10px;color:var(--dm);cursor:pointer}
+.tg input[type=checkbox]{accent-color:var(--am);width:15px;height:15px;cursor:pointer}
+.ip{max-width:880px;margin:0 auto;line-height:1.7}
+.ip h2{color:var(--am);font-size:17px;margin:22px 0 8px;border-bottom:2px solid var(--am3);padding-bottom:5px}
+.ip h4{color:var(--bt);margin:12px 0 5px}.ip p,.ip li{color:var(--tx);font-size:12.5px}.ip ul{padding-left:18px;margin:5px 0}
+.ip .fm{background:var(--card);border:1px solid var(--brd);border-radius:6px;padding:9px 12px;font-family:var(--mo);font-size:11px;color:var(--cy);margin:6px 0;overflow-x:auto}
+.ip .nt{background:var(--bl2);border:1px solid var(--bl);border-radius:6px;padding:9px 12px;font-size:11px;margin:6px 0}
+.bd{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600}
+.hidden{display:none}
+@media(max-width:900px){.side{width:240px;min-width:240px}}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="hdr">
+ <div><h1>⚙ VRM Heat & Mass Balance Dashboard</h1><p id="pInfo">Combined · Raw Mill · Coal Mill · Cement Mill</p></div>
+ <div class="msel" id="millSel"></div>
+ <div class="tabs" id="tabBar"></div>
+</div>
+<div class="main">
+ <div class="side" id="side"></div>
+ <div class="cnt" id="cnt"></div>
+</div>
+</div>
+<script>
+"use strict";
+const LH=2256,CPW=4.183,RN={O2:1.429,CO2:1.977,SO2:2.931,N2:1.2504,Ar:1.7821,H2O:0.8038};
+
+const PRESETS={
+ rm:{label:"Raw Mill",cls:"rm",
+  projectName:"Raw Mill",productRate:400,productMoisture:0,spc:7.68,rejectPct:0,
+  elevation:0,ambTemp:0,faTemp:0,relHum:0,
+  feedTemp:0,injWTemp:0,injWRate:0,cpFeed:0,
+  kilnVol:0,kilnTemp:0,kilnH2O:27,kilnO2:4.5,kilnCO2:27,kilnSO2:0,kilnDust:0,
+  freshVol:0,recircPct:0,recircTloss:0,bypassPct:0,
+  useCyclone:false,cyclEff:92,
+  millOutVol:0,millOutTemp:0,
+  dpMill:0,dpFilter:0,dpBehFilter:0,dpFanTotal:0,
+  fa_mill:0,fa_cyclone:0,fa_filter:0,fa_filtFan:0,
+  filtEff:0,fanEffOp:0,fanEffLay:0,layDp:0,layFlow:0,
+  mat:[{n:"Limestone",s:0,m:0},{n:"Clay",s:0,m:0},{n:"Comp. C",s:0,m:0},{n:"Comp. D",s:0,m:0},{n:"Comp. E",s:0,m:0},{n:"Comp. F",s:0,m:0}],
+  scenarios:[
+   {name:"Winter",at:0,fat:0,ft:0,iwt:0,rh:0,iwr:0,pr:0,mm:[0,0,0,0,0,0]},
+   {name:"Average",at:0,fat:0,ft:0,iwt:0,rh:0,iwr:0,pr:0,mm:[0,0,0,0,0,0]},
+   {name:"Summer",at:0,fat:0,ft:0,iwt:0,rh:0,iwr:0,pr:0,mm:[0,0,0,0,0,0]}]},
+ cm:{label:"Coal Mill",cls:"cm",
+  projectName:"Coal Mill",productRate:19,productMoisture:0.9,spc:20.25,rejectPct:25,
+  elevation:0,ambTemp:0,faTemp:0,relHum:0,
+  feedTemp:0,injWTemp:0,injWRate:0,cpFeed:0,
+  kilnVol:0,kilnTemp:0,kilnH2O:27,kilnO2:4.5,kilnCO2:27,kilnSO2:0,kilnDust:0,
+  freshVol:0,recircPct:0,recircTloss:0,bypassPct:0,
+  useCyclone:false,cyclEff:0,
+  millOutVol:0,millOutTemp:0,
+  dpMill:0,dpFilter:0,dpBehFilter:0,dpFanTotal:0,
+  fa_mill:0,fa_cyclone:0,fa_filter:0,fa_filtFan:0,
+  filtEff:0,fanEffOp:0,fanEffLay:0,layDp:0,layFlow:0,
+  mat:[{n:"Petcoke",s:0,m:0},{n:"Coal",s:0,m:0},{n:"Comp. C",s:0,m:0},{n:"Comp. D",s:0,m:0},{n:"Comp. E",s:0,m:0},{n:"Comp. F",s:0,m:0}],
+  scenarios:[
+   {name:"Winter Coal",at:0,fat:0,ft:0,iwt:0,rh:0,iwr:0,pr:0,mm:[0,0,0,0,0,0]},
+   {name:"Summer PC",at:0,fat:0,ft:0,iwt:0,rh:0,iwr:0,pr:0,mm:[0,0,0,0,0,0]},
+   {name:"Avg Coal",at:0,fat:0,ft:0,iwt:0,rh:0,iwr:0,pr:0,mm:[0,0,0,0,0,0]}]},
+ cs:{label:"Cement Mill",cls:"cs",
+  projectName:"Cement Mill",productRate:260,productMoisture:0,spc:15,rejectPct:25,
+  elevation:0,ambTemp:0,faTemp:0,relHum:0,
+  feedTemp:0,injWTemp:0,injWRate:0,cpFeed:0,
+  kilnVol:0,kilnTemp:0,kilnH2O:27,kilnO2:4.5,kilnCO2:27,kilnSO2:0,kilnDust:0,
+  freshVol:0,recircPct:0,recircTloss:0,bypassPct:0,
+  useCyclone:false,cyclEff:0,
+  millOutVol:0,millOutTemp:0,
+  dpMill:0,dpFilter:0,dpBehFilter:0,dpFanTotal:0,
+  fa_mill:0,fa_cyclone:0,fa_filter:0,fa_filtFan:0,
+  filtEff:0,fanEffOp:0,fanEffLay:0,layDp:0,layFlow:0,
+  mat:[{n:"Clinker",s:0,m:0},{n:"Gypsum",s:0,m:0},{n:"Limestone",s:0,m:0},{n:"Wet Flyash",s:0,m:0},{n:"Slag",s:0,m:0},{n:"Comp. F",s:0,m:0}],
+  scenarios:[
+   {name:"OPC2 Summer",at:0,fat:0,ft:0,iwt:0,rh:0,iwr:0,pr:0,mm:[0,0,0,0,0,0]},
+   {name:"OPC1 Summer",at:0,fat:0,ft:0,iwt:0,rh:0,iwr:0,pr:0,mm:[0,0,0,0,0,0]},
+   {name:"Winter",at:0,fat:0,ft:0,iwt:0,rh:0,iwr:0,pr:0,mm:[0,0,0,0,0,0]}]}
+};
+
+let mT="rm",aT="diagram",S={},C={};
+function ldP(t){mT=t;S=JSON.parse(JSON.stringify(PRESETS[t]))}
+ldP("rm");
+
+// Thermo
+function baro(h){return 1013.25*Math.pow(1-6.5*h/288000,5.256)}
+function satP(t){return t>=0?6.1078*Math.exp(17.269*t/(237.29+t))/1000:6.1078*Math.exp(21.875*t/(265.5+t))/1000}
+function absH(rh,t,p){const ps=satP(t),pw=rh/100*ps;return .622*pw/Math.max(p/1000-pw,.001)}
+function dP(x,p){const pw=x*(p/1000)/(.622+x);if(pw<=1e-5)return-40;const a=Math.log(pw/.006108);return 237.29*a/(17.269-a)}
+function gR(c){const{O2:o=0,CO2:c2=0,N2:n=78,H2O:h=0,Ar:a=.9,SO2:s=0}=c;const t=o+c2+n+h+a+s;return t===0?1.293:(o*RN.O2+c2*RN.CO2+n*RN.N2+h*RN.H2O+a*RN.Ar+s*RN.SO2)/t}
+function gC(c,t){const cO=.9135+1.56e-4*t,cC2=.8168+5.09e-4*t,cN=1.0401+2.5e-5*t,cH=1.858+2.2e-4*t,cA=.5203;
+const{O2:o=0,CO2:c2=0,N2:n=78,H2O:h=0,Ar:a=.9,SO2:s=0}=c;
+const m=o*RN.O2*cO+c2*RN.CO2*cC2+n*RN.N2*cN+h*RN.H2O*cH+a*RN.Ar*cA;
+const mt=o*RN.O2+c2*RN.CO2+n*RN.N2+h*RN.H2O+a*RN.Ar;return mt>0?m/mt:1.005}
+function aV(V,t,p){return V*(273.15+t)/273.15*1013.25/p}
+function gH(V,c,t){return V*gR(c)*gC(c,t)*t/1e6}
+function wC(d,h2o){const hv=h2o/RN.H2O/10;const sd=(d.O2||0)+(d.CO2||0)+(d.N2||0)+(d.Ar||0)+(d.SO2||0);const f=(100-hv)/Math.max(sd,.01);
+return{O2:(d.O2||0)*f,CO2:(d.CO2||0)*f,N2:(d.N2||0)*f,Ar:(d.Ar||0)*f,SO2:(d.SO2||0)*f,H2O:hv}}
+
+function calc(){
+ const s=S,c={};
+ c.Pa=baro(s.elevation);c.xw=absH(s.relHum,s.ambTemp,c.Pa);c.tdp=dP(c.xw,c.Pa);
+ const ps=satP(s.ambTemp),pw=s.relHum/100*ps,pB=c.Pa/1000,xvH=pw/pB*100,df=(100-xvH)/100;
+ c.air={O2:20.938*df,CO2:.033*df,N2:78.111*df,Ar:.918*df,H2O:xvH,SO2:0};c.aR=gR(c.air);
+ // Material
+ const ts=s.mat.reduce((a,m)=>a+m.s,0)||100;
+ c.fM=s.mat.reduce((a,m)=>a+m.m*m.s/ts,0);
+ c.pD=s.productRate*(1-s.productMoisture/100);
+ c.fR=c.pD/(1-c.fM/100);
+ c.rjR=s.productRate*s.rejectPct/100;
+ c.tFR=c.fR+c.rjR;
+ c.wF=c.fR*c.fM/100;
+ c.eF=c.wF-s.productRate*s.productMoisture/100;
+ c.eI=s.injWRate/1000;c.tE=c.eF+c.eI;
+ c.eH=c.tE*LH/1000;
+ c.mP=s.productRate*s.spc*3.6/1000;
+ c.mH=c.tFR*s.cpFeed*s.feedTemp/1000;
+ c.iH=s.injWRate*CPW*s.injWTemp/1e6;
+ // Kiln gas
+ const kd={O2:s.kilnO2,CO2:s.kilnCO2,N2:100-s.kilnO2-s.kilnCO2-.4,Ar:.4,SO2:s.kilnSO2};
+ c.kC=wC(kd,s.kilnH2O);c.kR=gR(c.kC);c.kCp=gC(c.kC,s.kilnTemp);
+ c.kH=gH(s.kilnVol,c.kC,s.kilnTemp);c.kA=aV(s.kilnVol,s.kilnTemp,c.Pa);
+ c.dI=s.kilnDust*s.kilnVol/1000;
+ // Mill out norm
+ c.mON=s.millOutVol/((273.15+s.millOutTemp)/273.15)*(c.Pa/1013.25);
+ // False air
+ c.fam=c.mON*s.fa_mill/100;
+ c.fac=s.useCyclone?c.mON*s.fa_cyclone/100:0;
+ c.faf=c.mON*s.fa_filter/100;c.faff=c.mON*s.fa_filtFan/100;
+ c.tFA=c.fam+c.fac+c.faf+c.faff;
+ c.frH=gH(s.freshVol,c.air,s.ambTemp);
+ // Recirc
+ c.rcV=c.mON*s.recircPct/100;c.rcT=s.millOutTemp-s.recircTloss;
+ // Bypass (raw mill only)
+ c.bpV=s.kilnVol*s.bypassPct/100;
+ c.gTM=s.kilnVol-c.bpV;
+ c.qV=c.bpV>0?c.bpV*.117:0;
+ // Evap Nm3
+ c.eN=c.tE*1000/RN.H2O;
+ // Gas to mill = kiln(to mill portion) + fresh + recirc
+ c.gMI=c.gTM+s.freshVol+c.rcV;
+ // Mill outlet gas norm
+ c.mOG=c.gMI+c.fam+c.eN;
+ // After cyclone (if used)
+ if(s.useCyclone){
+  c.dCC=c.dI*s.cyclEff/100;c.dAC=c.dI-c.dCC;
+  c.gAC=c.mOG+c.fac;
+ }else{c.dCC=0;c.dAC=c.dI;c.gAC=c.mOG}
+ // Filter inlet = after cyclone/mill + bypass + quench + FA filter
+ c.gFI=c.gAC+c.bpV+c.qV+c.faf;
+ c.gFnI=c.gFI+c.faf; // actually filter + fa_filter already. Let me fix:
+ // Correction: gFI = gas after cyclone path + bypass path
+ c.gFI=c.gAC+c.bpV+c.qV;
+ // After filter, add FA filter
+ c.gFnI=c.gFI+c.faf;
+ // Fan inlet = after filter + FA filter fan... but per excel: FA filter is BEFORE filter fan
+ // Excel: gas filter fan inlet = gas filter inlet + FA filter
+ c.gFnI=c.gFI+c.faf;
+ // Fan outlet = fan inlet + FA fan
+ c.gFnO=c.gFnI+c.faff;
+ // Stack = fan outlet - recirculation
+ c.gSt=c.gFnO-c.rcV;
+ // Dust
+ c.dFC=c.dAC*s.filtEff/100;c.dSt=c.dAC-c.dFC;
+ c.dC=c.gSt>0?c.dSt/c.gSt*1000:0;
+ // Fan
+ c.dpF=s.dpFanTotal;
+ c.pFnI=c.Pa-s.dpFilter-s.dpBehFilter;
+ c.fRA=gR(c.air)*273.15/(273.15+s.millOutTemp)*c.pFnI/1013.25;
+ c.fAct=aV(c.gFnI,s.millOutTemp,c.pFnI);
+ c.fPO=c.fAct*c.fRA*c.dpF*100/(s.fanEffOp*3600);
+ c.fVL=c.gFnI*(1+s.layFlow/100);c.fDL=c.dpF*(1+s.layDp/100);
+ c.fAL=aV(c.fVL,s.millOutTemp,c.pFnI);
+ c.fPL=c.fAL*c.fRA*c.fDL*100/(s.fanEffLay*3600);
+ // Stack heat
+ c.sH=gH(c.gSt,c.air,s.millOutTemp);
+ // Heat balance
+ c.hiG=c.kH;c.hiFr=c.frH;c.hiM=c.mP;c.hiMt=c.mH;c.hiI=c.iH;
+ c.hiFA=c.tFA*c.aR*gC(c.air,s.ambTemp)*s.ambTemp/1e6;
+ c.hiR=c.rcV>0?gH(c.rcV,c.air,c.rcT):0;
+ c.tHI=c.hiG+c.hiFr+c.hiM+c.hiMt+c.hiI+c.hiFA+c.hiR;
+ c.hoE=c.eH;c.hoS=c.sH;c.hoR=Math.max(0,c.tHI-c.hoE-c.hoS);
+ c.tHO=c.hoE+c.hoS+c.hoR;
+ c.spH=s.productRate>0?c.tHI/s.productRate*1000:0;
+ c.spE=s.productRate>0?c.hoE/s.productRate*1000:0;
+ C=c;
+}
+
+const f=(v,d=1)=>typeof v==='number'&&isFinite(v)?v.toFixed(d):'—';
+const fN=v=>typeof v==='number'&&isFinite(v)?v.toLocaleString('en',{maximumFractionDigits:0}):'—';
+const tC=t=>t>200?'var(--rd)':t>80?'var(--am)':'var(--bl)';
+const mC=()=>({rm:'var(--am)',cm:'var(--rd)',cs:'var(--bl)'})[mT];
+
+function inp(l,k,u,st=1){return `<div class="ir"><label>${l}</label><input type="number" value="${S[k]}" step="${st}" onchange="S['${k}']=parseFloat(this.value)||0;rc()"><span class="u">${u}</span></div>`}
+function mR(i){const m=S.mat[i];return `<div class="mr"><input type="text" value="${m.n}" style="width:58px;font-size:9px;font-family:var(--sn);background:var(--bg);border:1px solid var(--brd2);border-radius:3px;color:var(--tx)" onchange="S.mat[${i}].n=this.value"><input type="number" value="${m.s}" min="0" max="100" onchange="S.mat[${i}].s=parseFloat(this.value)||0;rc()"><span class="mu">%</span><input type="number" value="${m.m}" min="0" max="30" step="0.1" style="color:var(--cy)" onchange="S.mat[${i}].m=parseFloat(this.value)||0;rc()"><span class="mu">%H₂O</span></div>`}
+function kpi(l,v,u,cl){return `<div class="kp"><div class="kl">${l}</div><div class="kv" style="color:${cl||mC()}">${typeof v==='number'?(Math.abs(v)>9999?fN(v):f(v,2)):v}<span class="ku">${u}</span></div></div>`}
+
+function rSide(){
+ const isRM=mT==='rm';
+ document.getElementById('side').innerHTML=`
+  <div class="sl">Production</div>
+  ${inp('Product Rate','productRate','t/h',10)}
+  ${inp('Product Moist.','productMoisture','%',0.1)}
+  ${inp('Spec. Power','spc','kWh/t',0.1)}
+  ${inp('Reject Rate','rejectPct','%',1)}
+  <div class="sl">Ambient</div>
+  ${inp('Elevation','elevation','m',50)}
+  ${inp('Ambient Temp','ambTemp','°C',1)}
+  ${inp('False Air Temp','faTemp','°C',1)}
+  ${inp('Rel. Humidity','relHum','%',1)}
+  <div class="sl">Feed</div>
+  ${inp('Feed Temp','feedTemp','°C',1)}
+  ${inp('Cp Feed','cpFeed','kJ/kgK',0.01)}
+  ${inp('Inj. Water Temp','injWTemp','°C',1)}
+  ${inp('Inj. Water Rate','injWRate','kg/h',100)}
+  <div class="sl">Raw Materials</div>
+  ${S.mat.map((_,i)=>mR(i)).join('')}
+  <div class="sl">Process Gas</div>
+  ${S.kilnVol>0||mT==='rm'||mT==='cm'?`
+  ${inp('Kiln Gas Vol','kilnVol','Nm³/h',1000)}
+  ${inp('Kiln Gas Temp','kilnTemp','°C',5)}
+  ${inp('Kiln H₂O','kilnH2O','g/Nm³',1)}
+  ${inp('Kiln O₂','kilnO2','%',0.1)}
+  ${inp('Kiln CO₂','kilnCO2','%',0.1)}
+  ${inp('Kiln Dust','kilnDust','g/Nm³',1)}`:''}
+  ${mT==='cs'?inp('Fresh Air Vol','freshVol','Nm³/h',1000):''}
+  <div class="sl">Recirculation / Bypass</div>
+  ${isRM?inp('Bypass %','bypassPct','%',5):''}
+  ${inp('Recirc. %','recircPct','%',1)}
+  ${inp('Recirc. T-loss','recircTloss','°C',1)}
+  ${isRM?`<div class="tg"><input type="checkbox" id="cycTog" ${S.useCyclone?'checked':''} onchange="S.useCyclone=this.checked;rc()"><label for="cycTog">Enable Cyclone</label></div>
+  ${S.useCyclone?`${inp('Cyclone η','cyclEff','%',0.5)}${inp('FA Cyclone','fa_cyclone','%',0.5)}`:''}
+  `:''}
+  <div class="sl">Mill / System</div>
+  ${inp('Mill Out Vol','millOutVol','m³/h',5000)}
+  ${inp('Mill Out Temp','millOutTemp','°C',1)}
+  ${inp('ΔP Mill','dpMill','mbar',5)}
+  ${inp('ΔP Filter','dpFilter','mbar',1)}
+  ${inp('ΔP beh.Filter','dpBehFilter','mbar',0.5)}
+  ${inp('Fan ΔP Total','dpFanTotal','mbar',5)}
+  <div class="sl">False Air %</div>
+  ${inp('FA Mill','fa_mill','%',0.5)}
+  ${inp('FA Filter','fa_filter','%',0.5)}
+  ${inp('FA Filt.Fan','fa_filtFan','%',0.1)}
+  <div class="sl">Efficiencies</div>
+  ${inp('Filter η','filtEff','%',0.001)}
+  ${inp('Fan η (Op)','fanEffOp','%',1)}
+  ${inp('Fan η (Lay)','fanEffLay','%',1)}
+  ${inp('Layout +ΔP','layDp','%',1)}
+  ${inp('Layout +Flow','layFlow','%',1)}
+  <div style="height:30px"></div>`;
+}
+
+// ═══ FLOW DIAGRAM: HTML cards with SVG pipe overlay ═══
+// Cards contain all text (never overflows). SVG draws connecting pipes BEHIND cards.
+
+function rDiag(){
+ const c=C,s=S;
+ const hK=s.kilnVol>0,hFr=s.freshVol>0,hBp=s.bypassPct>0&&hK,hRc=c.rcV>0,hCy=s.useCyclone&&mT==='rm';
+
+ // ─── CARD POSITIONS (absolute, in px) ───
+ // Two rows: Row1=top equipment, Row2=bottom equipment
+ // Generous spacing so lines are clearly visible between cards
+ const R1=20, R2=250; // row Y positions
+ const cW=140, cH=100; // default card sizes
+ const sp=60; // horizontal spacing between cards (where lines are visible)
+
+ // Row 1 X positions
+ const xSrc=20;
+ let xBp=xSrc+cW+sp;
+ let xBag, xFan, xStk;
+ if(hBp){
+  xBag=xBp+80+sp+60; // bypass is narrower, then extra space for quench label
+  xFan=xBag+cW+sp;
+  xStk=xFan+110+sp;
+ } else {
+  xBag=xSrc+cW+sp+80;
+  xFan=xBag+cW+sp;
+  xStk=xFan+110+sp;
+ }
+
+ // Row 2 X positions
+ const xFeed=20;
+ const xVrm=hBp?xBp-10:xSrc+cW+sp;
+ const xCyc=hCy?xVrm+cW+sp:0;
+
+ // Canvas size
+ const W=xStk+cW+30;
+ const H=hCy?R2+cH+80:R2+cH+40;
+
+ // ─── Card HTML helper ───
+ function card(id,x,y,w,h,borderColor,content){
+  return `<div id="${id}" style="position:absolute;left:${x}px;top:${y}px;width:${w}px;min-height:${h}px;background:#0a0f1a;border:1.5px solid ${borderColor};border-radius:8px;padding:8px 10px;text-align:center;z-index:2">${content}</div>`;
+ }
+ function lbl(text,color='#eaf0f8'){return `<div style="font-size:7.5px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:${color};margin-bottom:4px">${text}</div>`}
+ function big(text,color='#eaf0f8'){return `<div style="font-size:13px;font-weight:700;color:${color};font-family:var(--mo);line-height:1.3">${text}</div>`}
+ function sm(text,color='#b8c4d6'){return `<div style="font-size:9px;color:${color};font-family:var(--mo);margin-top:2px">${text}</div>`}
+ function xs(text,color='#6b7a94'){return `<div style="font-size:8px;color:${color};margin-top:1px">${text}</div>`}
+
+ let o=`<div class="cd" style="padding:16px 20px"><h3>${S.label||PRESETS[mT].label} — Process Flow</h3>`;
+
+ // ─── CONTAINER with relative positioning ───
+ o+=`<div style="position:relative;width:${W}px;height:${H}px;overflow-x:auto;margin:0 auto">`;
+
+ // ─── SVG PIPE LAYER (behind cards, z-index:1) ───
+ o+=`<svg style="position:absolute;top:0;left:0;width:${W}px;height:${H}px;z-index:1;pointer-events:none" viewBox="0 0 ${W} ${H}">`;
+ o+=`<defs>`;
+ o+=`<marker id="pa" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#4f6080"/></marker>`;
+ o+=`<marker id="pr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#ef4444"/></marker>`;
+ o+=`<marker id="pg" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#10b981"/></marker>`;
+ o+=`<marker id="pb" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#3b82f6"/></marker>`;
+ o+=`</defs>`;
+ o+=`<style>@keyframes fd{from{stroke-dashoffset:24}to{stroke-dashoffset:0}}.fl{stroke-width:6;fill:none;stroke-dasharray:4,20;animation:fd 1s linear infinite;pointer-events:none}</style>`;
+
+ // Helper: draw pipe with animated flow overlay
+ function pipe(x1,y1,x2,y2,color='#4f6080',marker='pa'){
+  return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="2" fill="none" marker-end="url(#${marker})"/><line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" opacity=".15" class="fl"/>`;
+ }
+ function pipePoly(pts,color='#4f6080',marker='pa'){
+  return `<polyline points="${pts}" stroke="${color}" stroke-width="2" fill="none" marker-end="url(#${marker})"/><polyline points="${pts}" stroke="${color}" opacity=".15" class="fl"/>`;
+ }
+
+ // Pipe Y centers for each row
+ const yP1=R1+cH/2; // row 1 pipe center
+ const yP2=R2+cH/2; // row 2 pipe center
+
+ // ═══ ROW 1 PIPES ═══
+
+ if(hBp){
+  // Source → Bypass
+  o+=pipe(xSrc+cW, yP1, xBp, yP1, '#ef4444','pr');
+  // Bypass → Baghouse (top horizontal)
+  o+=pipe(xBp+80, yP1-15, xBag, yP1-15, '#ef4444','pr');
+  // Bypass → down to VRM
+  o+=pipe(xBp+40, R1+cH, xBp+40, R2, '#4f6080','pa');
+  // Quench → bypass pipe (vertical up)
+  const qx=(xBp+80+xBag)/2;
+  o+=pipe(qx, R1+cH+55, qx, yP1-8, '#3b82f6','pb');
+ } else {
+  // Source → right → down to VRM area
+  const midX=xVrm+cW/2;
+  o+=pipe(xSrc+cW, yP1, midX, yP1, hK?'#ef4444':'#3b82f6', hK?'pr':'pb');
+  o+=pipe(midX, yP1, midX, R2, '#4f6080','pa');
+ }
+
+ // Baghouse → Fan
+ o+=pipe(xBag+cW, yP1, xFan, yP1, '#4f6080','pa');
+ // Fan → Stack
+ o+=pipe(xFan+110, yP1, xStk, yP1, '#4f6080','pa');
+
+ // ═══ ROW 2 PIPES ═══
+
+ // Feed → VRM
+ o+=pipe(xFeed+cW, yP2, xVrm, yP2, '#10b981','pg');
+ // Water → VRM (angled)
+ o+=pipe(xFeed+cW, R2+cH+22, xVrm, R2+cH-10, '#3b82f6','pb');
+
+ // Recirc → VRM (if present)
+ if(hRc){
+  o+=pipe(xFeed+cW, R2-25, xVrm, R2+15, '#4f6080','pa');
+ }
+
+ // VRM → [Cyclone] → up to Baghouse
+ const pipeUpX=xBag+10; // LEFT side of baghouse
+
+ if(hCy){
+  // VRM → Cyclone
+  o+=pipe(xVrm+cW, yP2, xCyc, yP2, '#4f6080','pa');
+  // Cyclone → down → right → up to Baghouse
+  const cyBot=R2+cH+30;
+  o+=pipe(xCyc+cW/2, R2+cH, xCyc+cW/2, cyBot, '#4f6080','pa');
+  o+=pipePoly(`${xCyc+cW/2},${cyBot} ${pipeUpX},${cyBot} ${pipeUpX},${R1+cH}`, '#4f6080','pa');
+ } else {
+  // VRM → right → down → right → up to Baghouse
+  const turnX=xVrm+cW+30;
+  const turnY=R2+cH+20;
+  o+=pipe(xVrm+cW, yP2, turnX, yP2, '#4f6080','pa');
+  o+=pipePoly(`${turnX},${yP2} ${turnX},${turnY} ${pipeUpX},${turnY} ${pipeUpX},${R1+cH}`, '#4f6080','pa');
+ }
+
+ o+=`</svg>`; // end SVG pipe layer
+
+ // ═══ HTML CARD LAYER (on top of pipes) ═══
+
+ // Source
+ o+=card('src',xSrc,R1,cW,cH-10, hK?'#ef4444':'#3b82f6',
+  lbl(hK?'KILN GAS':hFr?'FRESH AIR':'—')+
+  big(`${fN(hK?s.kilnVol:s.freshVol)}`,hK?'#ef4444':'#3b82f6')+
+  xs('Nm³/h')+
+  sm(`${hK?s.kilnTemp:s.ambTemp}°C`,hK?'#ef4444':'#3b82f6')+
+  xs(`${f(hK?c.kH:c.frH,1)} GJ/h`)
+ );
+
+ if(hBp){
+  // Bypass
+  o+=card('bp',xBp,R1+10,80,cH-30, '#f59e0b',
+   lbl('BYPASS')+
+   big(`${s.bypassPct}%`,'#f59e0b')
+  );
+  // Quench air
+  const qx=(xBp+80+xBag)/2;
+  o+=card('qn',qx-55,R1+cH+30,110,40, '#3b82f6',
+   lbl('QUENCH AIR','#3b82f6')+
+   sm(`${fN(c.qV)} Nm³/h`,'#3b82f6')
+  );
+  // "to mill" label
+  o+=`<div style="position:absolute;left:${xBp-15}px;top:${R1+cH+5}px;z-index:2;font-size:8px;color:#6b7a94;font-family:var(--mo);background:#0a0f1a;padding:2px 6px;border-radius:3px">to mill: ${fN(c.gTM)}</div>`;
+ }
+
+ // Baghouse
+ o+=card('bag',xBag,R1,cW,cH, '#8b5cf6',
+  lbl('BAGHOUSE')+
+  `<div style="display:flex;gap:3px;justify-content:center;margin:3px 0">${[1,2,3,4].map(()=>`<div style="width:2px;height:16px;background:#8b5cf625;border-radius:1px"></div>`).join('')}</div>`+
+  sm(`η ${s.filtEff}%`,'#8b5cf6')+
+  xs(`ΔP ${s.dpFilter}+${s.dpBehFilter} mbar`)+
+  xs(`FA ${f(s.fa_filter,1)}%`)
+ );
+
+ // Fan
+ o+=card('fan',xFan,R1,110,cH, '#3b82f6',
+  lbl('FAN')+
+  `<div style="width:22px;height:22px;border:1.5px solid #3b82f650;border-radius:50%;margin:3px auto;display:flex;align-items:center;justify-content:center;font-size:12px;color:#3b82f640">✸</div>`+
+  big(`${f(c.fPO,0)} kW`)+
+  xs(`η${s.fanEffOp}% · ${f(c.dpF,0)} mbar`)
+ );
+
+ // Stack
+ o+=card('stk',xStk,R1,cW,cH, '#4f6080',
+  lbl('STACK')+
+  `<div style="width:10px;height:22px;border:1.5px solid #4f608060;margin:3px auto;border-radius:1px 1px 0 0"></div>`+
+  big(`${fN(c.gSt)}`)+
+  xs('Nm³/h')+
+  sm(`${f(s.millOutTemp,0)}°C · ${f(c.sH,1)} GJ/h`,s.millOutTemp>200?'#ef4444':s.millOutTemp>80?'#f59e0b':'#3b82f6')+
+  xs(`${f(c.dC,4)} g/Nm³`)
+ );
+
+ // ═══ ROW 2 CARDS ═══
+
+ // Recirc (if present)
+ if(hRc){
+  o+=card('rec',xFeed,R2-40,cW,30, '#4f6080',
+   lbl(`RECIRC ${f(s.recircPct,1)}%`)+
+   sm(`${fN(c.rcV)} Nm³/h · ${f(c.rcT,0)}°C`)
+  );
+ }
+
+ // Feed
+ o+=card('feed',xFeed,R2,cW,cH-15, '#10b981',
+  lbl('RAW FEED','#10b981')+
+  big(`${f(c.fR,1)} t/h`,'#10b981')+
+  sm(`${f(c.fM,2)}% H₂O · ${s.feedTemp}°C`,'#10b981')
+ );
+
+ // Inj water
+ o+=card('water',xFeed,R2+cH-5,cW,35, '#06b6d4',
+  lbl('INJ. WATER','#06b6d4')+
+  sm(`${fN(s.injWRate)} kg/h · ${s.injWTemp}°C`,'#06b6d4')
+ );
+
+ // VRM
+ o+=card('vrm',xVrm,R2,cW,cH, '#ef4444',
+  lbl('VRM')+
+  `<div style="display:flex;justify-content:center;gap:4px;margin:3px 0"><div style="width:6px;height:14px;border:1px solid #f59e0b;border-radius:50%;transform:rotate(-10deg)"></div><div style="width:12px;height:2px;background:#ef444430;border-radius:1px;margin-top:13px"></div><div style="width:6px;height:14px;border:1px solid #f59e0b;border-radius:50%;transform:rotate(10deg)"></div></div>`+
+  big(`${fN(s.millOutVol)} m³/h`)+
+  sm(`${s.millOutTemp}°C · ΔP ${s.dpMill}`,'#ef4444')+
+  xs(`FA ${f(s.fa_mill,1)}% · ${f(c.mP,2)} GJ/h`)
+ );
+
+ // Cyclone (if enabled)
+ if(hCy){
+  o+=card('cyc',xCyc,R2,cW-20,cH-10, '#f59e0b',
+   lbl('CYCLONE','#f59e0b')+
+   `<div style="width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-top:14px solid #f59e0b25;margin:4px auto"></div>`+
+   sm(`η ${s.cyclEff}%`,'#f59e0b')+
+   xs(`FA ${f(s.fa_cyclone,1)}%`)
+  );
+ }
+
+ // "up to filter" label
+ o+=`<div style="position:absolute;left:${pipeUpX-20}px;top:${R1+cH+5}px;z-index:3;font-size:7.5px;color:#6b7a94;font-family:var(--sn);background:#0a0f1a;padding:2px 5px;border-radius:3px;border:1px dashed #4f608030">↑ to filter</div>`;
+
+ o+=`</div>`; // end container
+ o+=`</div>`; // end card
+
+ // ═══ DATA TABLES ═══
+ o+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px">`;
+ const hp=v=>c.tHI>0?f(v/c.tHI*100,1):'—';
+ // Heat Balance
+ o+=`<div class="cd" style="margin:0"><h3>Heat Balance</h3><table class="dt" style="font-size:11px">`;
+ o+=`<tr><th style="text-align:left" colspan="2">INPUT</th><th style="width:85px">GJ/h</th><th style="width:48px">%</th></tr>`;
+ if(c.hiG>0)o+=`<tr><td colspan="2" style="color:#ef4444">Kiln Gas</td><td style="color:#ef4444">${f(c.hiG,2)}</td><td>${hp(c.hiG)}</td></tr>`;
+ if(c.hiFr>0)o+=`<tr><td colspan="2" style="color:#3b82f6">Fresh Air</td><td style="color:#3b82f6">${f(c.hiFr,2)}</td><td>${hp(c.hiFr)}</td></tr>`;
+ o+=`<tr><td colspan="2">Mill Drive Power</td><td style="color:#f59e0b">${f(c.hiM,2)}</td><td>${hp(c.hiM)}</td></tr>`;
+ o+=`<tr><td colspan="2">Material Sensible Heat</td><td>${f(c.hiMt,2)}</td><td>${hp(c.hiMt)}</td></tr>`;
+ o+=`<tr><td colspan="2">Injection Water</td><td>${f(c.hiI,2)}</td><td>${hp(c.hiI)}</td></tr>`;
+ o+=`<tr><td colspan="2">False Air</td><td>${f(c.hiFA,2)}</td><td>${hp(c.hiFA)}</td></tr>`;
+ if(c.hiR>0)o+=`<tr><td colspan="2">Recirculating Gas</td><td>${f(c.hiR,2)}</td><td>${hp(c.hiR)}</td></tr>`;
+ o+=`<tr style="border-top:2px solid #10b981"><td colspan="2" style="color:#10b981;font-weight:700;font-size:13px">TOTAL IN</td><td style="color:#10b981;font-weight:700;font-size:14px">${f(c.tHI,2)}</td><td style="color:#10b981">100</td></tr>`;
+ o+=`<tr><td colspan="4" style="height:8px;border:none"></td></tr>`;
+ o+=`<tr><th style="text-align:left" colspan="2">OUTPUT</th><th>GJ/h</th><th>%</th></tr>`;
+ o+=`<tr><td colspan="2" style="color:#06b6d4">Water Evaporation</td><td style="color:#06b6d4">${f(c.hoE,2)}</td><td>${hp(c.hoE)}</td></tr>`;
+ o+=`<tr><td colspan="2">Stack Gas Loss</td><td>${f(c.hoS,2)}</td><td>${hp(c.hoS)}</td></tr>`;
+ o+=`<tr><td colspan="2" style="color:#4f6080">Radiation &amp; Other</td><td style="color:#4f6080">${f(c.hoR,2)}</td><td>${hp(c.hoR)}</td></tr>`;
+ o+=`<tr style="border-top:2px solid #ef4444"><td colspan="2" style="color:#ef4444;font-weight:700;font-size:13px">TOTAL OUT</td><td style="color:#ef4444;font-weight:700;font-size:14px">${f(c.tHO,2)}</td><td style="color:#ef4444">100</td></tr>`;
+ o+=`</table></div>`;
+ // Process Data
+ o+=`<div class="cd" style="margin:0"><h3>Process Data</h3><table class="dt" style="font-size:11px">`;
+ o+=`<tr><td style="color:var(--dm)">Product Rate</td><td style="color:#f59e0b;font-weight:700">${f(s.productRate,1)} t/h</td><td style="color:var(--dm)">Spec. Heat Req.</td><td style="color:#f59e0b;font-weight:700">${f(c.spH,1)} kJ/kg</td></tr>`;
+ o+=`<tr><td>Feed Rate (wet)</td><td>${f(c.fR,1)} t/h</td><td>Spec. Evap. Heat</td><td style="color:#06b6d4">${f(c.spE,1)} kJ/kg</td></tr>`;
+ o+=`<tr><td>Feed Moisture</td><td style="color:#06b6d4">${f(c.fM,2)} %</td><td>Mill Power</td><td>${f(c.mP,2)} GJ/h · ${s.spc} kWh/t</td></tr>`;
+ o+=`<tr><td>Total Evaporation</td><td style="color:#06b6d4">${f(c.tE,2)} t/h</td><td>Injection Water</td><td>${fN(s.injWRate)} kg/h · ${s.injWTemp}°C</td></tr>`;
+ o+=`<tr><td>Reject Rate</td><td>${f(c.rjR,1)} t/h</td><td>Mill Out Temp</td><td style="color:${tC(s.millOutTemp)}">${s.millOutTemp}°C</td></tr>`;
+ o+=`<tr><td colspan="4" style="height:5px;border:none"></td></tr>`;
+ o+=`<tr><td>Elevation</td><td>${s.elevation} m</td><td>Baro. Pressure</td><td>${f(c.Pa,1)} mbar</td></tr>`;
+ o+=`<tr><td>Ambient Temp</td><td>${s.ambTemp}°C</td><td>Dew Point</td><td style="color:#3b82f6">${f(c.tdp,1)}°C</td></tr>`;
+ o+=`<tr><td>Rel. Humidity</td><td>${s.relHum}%</td><td>Total False Air</td><td>${fN(c.tFA)} Nm³/h</td></tr>`;
+ o+=`<tr><td colspan="4" style="height:5px;border:none"></td></tr>`;
+ o+=`<tr><td>Fan Power (op)</td><td style="color:#f59e0b;font-weight:600">${f(c.fPO,0)} kW</td><td>Fan Power (lay)</td><td style="color:#ef4444">${f(c.fPL,0)} kW</td></tr>`;
+ o+=`<tr><td>Fan ΔP</td><td>${f(c.dpF,1)} mbar</td><td>Gas to Stack</td><td>${fN(c.gSt)} Nm³/h</td></tr>`;
+ o+=`<tr><td>Dust to Stack</td><td>${f(c.dSt,3)} kg/h</td><td>Dust Conc.</td><td>${f(c.dC,4)} g/Nm³</td></tr>`;
+ o+=`<tr><td>Stack Heat Loss</td><td>${f(c.sH,1)} GJ/h</td><td>Filter Inlet</td><td>${fN(c.gFI)} Nm³/h</td></tr>`;
+ o+=`</table></div></div>`;
+ return o;
+}
+
+function rGas(){
+ const c=C,s=S,hCy=s.useCyclone&&mT==='rm';
+ const rows=[
+  {p:s.kilnVol>0?'Kiln Gas':'Fresh Air',v:s.kilnVol>0?s.kilnVol:s.freshVol,t:s.kilnVol>0?s.kilnTemp:s.ambTemp,gj:s.kilnVol>0?c.kH:c.frH},
+  ...(c.rcV>0?[{p:'Recirculating Gas',v:c.rcV,t:c.rcT,gj:c.hiR}]:[]),
+  {p:'Gas to Mill (total)',v:c.gMI,t:'-',gj:'-'},
+  {p:'FA Mill',v:c.fam,t:s.faTemp,gj:c.fam*c.aR*gC(c.air,s.faTemp)*s.faTemp/1e6},
+  {p:'Evap. Water (Nm³)',v:c.eN,t:s.millOutTemp,gj:'-'},
+  {p:'Mill Outlet Gas',v:c.mOG,t:s.millOutTemp,gj:'-'},
+  ...(hCy?[{p:'Cyclone (FA incl.)',v:c.gAC,t:s.millOutTemp,gj:'-'}]:[]),
+  ...(c.bpV>0?[{p:'Bypass Gas',v:c.bpV,t:s.kilnTemp,gj:c.bpV/Math.max(s.kilnVol,1)*c.kH},{p:'Quench Air',v:c.qV,t:s.ambTemp,gj:'-'}]:[]),
+  {p:'Filter Inlet',v:c.gFI,t:s.millOutTemp,gj:'-'},
+  {p:'FA Filter',v:c.faf,t:s.faTemp,gj:'-'},
+  {p:'Fan Inlet',v:c.gFnI,t:s.millOutTemp,gj:'-'},
+  {p:'Fan Outlet',v:c.gFnO,t:s.millOutTemp,gj:'-'},
+  {p:'Gas to Stack',v:c.gSt,t:s.millOutTemp,gj:c.sH},
+ ];
+ return `<div class="cd"><h3>Gas Volume at Key Points</h3><div style="overflow-x:auto"><table class="dt">
+  <tr><th style="text-align:left">Position</th><th>Nm³/h</th><th>m³/h actual</th><th>°C</th><th>GJ/h</th></tr>
+  ${rows.map(r=>`<tr><td>${r.p}</td><td>${fN(r.v)}</td><td>${typeof r.t==='number'?fN(aV(r.v,r.t,C.Pa)):'-'}</td><td>${typeof r.t==='number'?`<span style="color:${tC(r.t)}">${f(r.t,1)}</span>`:r.t}</td><td style="color:var(--am);font-weight:600">${typeof r.gj==='number'?f(r.gj,2):r.gj}</td></tr>`).join('')}
+ </table></div></div>`;
+}
+
+function hR(l,v,tot,col){const p=tot>0?v/tot*100:0;return `<div class="hr"><div class="rh"><span>${l}</span><span style="color:var(--am);font-family:var(--mo);font-weight:600">${f(v,2)} GJ/h</span></div><div class="bc"><div class="bf" style="width:${Math.min(p,100)}%;background:${col}"></div></div><div class="pc">${f(p,1)}%</div></div>`}
+function rHeat(){
+ const c=C;
+ return `<div class="tw">
+  <div class="cd" style="border-color:var(--gn2)"><h3 style="color:var(--gn)">⬇ HEAT INPUT</h3>
+   ${c.hiG>0?hR('Kiln Gas',c.hiG,c.tHI,'var(--rd)'):''}
+   ${c.hiFr>0?hR('Fresh Air',c.hiFr,c.tHI,'var(--bl)'):''}
+   ${hR('Mill Drive Power',c.hiM,c.tHI,'var(--am)')}
+   ${hR('Material Heat',c.hiMt,c.tHI,'var(--pu)')}
+   ${hR('Injection Water',c.hiI,c.tHI,'var(--cy)')}
+   ${hR('False Air',c.hiFA,c.tHI,'var(--dm)')}
+   ${c.hiR>0?hR('Recirc. Gas',c.hiR,c.tHI,'#6b7280'):''}
+   <div style="border-top:2px solid var(--gn);padding-top:5px;margin-top:5px;display:flex;justify-content:space-between"><span style="color:var(--gn);font-weight:700;font-size:12px">TOTAL IN</span><span style="color:var(--gn);font-weight:700;font-family:var(--mo);font-size:15px">${f(c.tHI,2)} GJ/h</span></div></div>
+  <div class="cd" style="border-color:var(--rd2)"><h3 style="color:var(--rd)">⬆ HEAT OUTPUT</h3>
+   ${hR('Evaporation',c.hoE,c.tHI,'var(--cy)')}
+   ${hR('Stack Gas Loss',c.hoS,c.tHI,'var(--bl)')}
+   ${hR('Radiation & Other',c.hoR,c.tHI,'var(--dm)')}
+   <div style="border-top:2px solid var(--rd);padding-top:5px;margin-top:5px;display:flex;justify-content:space-between"><span style="color:var(--rd);font-weight:700;font-size:12px">TOTAL OUT</span><span style="color:var(--rd);font-weight:700;font-family:var(--mo);font-size:15px">${f(c.tHO,2)} GJ/h</span></div></div>
+ </div>
+ <div class="kg">${kpi('Spec. Heat',c.spH,' kJ/kg')}${kpi('Spec. Evap',c.spE,' kJ/kg','var(--cy)')}${kpi('Mill Power',c.mP,' GJ/h','var(--gn)')}${kpi('Total Evap',c.tE,' t/h','var(--cy)')}</div>`;
+}
+
+function rMass(){
+ const c=C,s=S;
+ return `<div class="kg">${kpi('Feed Rate',c.fR,' t/h','var(--pu)')}${kpi('Product',s.productRate,' t/h')}${kpi('Dry Prod.',c.pD,' t/h','var(--gn)')}${kpi('Reject',c.rjR,' t/h','var(--dm)')}${kpi('Water in Feed',c.wF,' t/h','var(--cy)')}${kpi('Total Evap.',c.tE,' t/h','var(--cy)')}</div>
+ <div class="tw">
+  <div class="cd"><h3>Dust Collection</h3><table class="dt">
+   <tr><th style="text-align:left">Point</th><th>kg/h</th><th>t/h</th></tr>
+   <tr><td>Dust In</td><td>${fN(c.dI)}</td><td>${f(c.dI/1000,2)}</td></tr>
+   ${s.useCyclone&&mT==='rm'?`<tr><td>Cyclone (η=${s.cyclEff}%)</td><td style="color:var(--gn)">${fN(c.dCC)}</td><td>${f(c.dCC/1000,2)}</td></tr><tr><td>After Cyclone</td><td>${fN(c.dAC)}</td><td>${f(c.dAC/1000,3)}</td></tr>`:''}
+   <tr><td>Filter (η=${s.filtEff}%)</td><td style="color:var(--gn)">${fN(c.dFC)}</td><td>${f(c.dFC/1000,3)}</td></tr>
+   <tr><td>Dust to Stack</td><td style="color:var(--rd)">${f(c.dSt,3)}</td><td>${f(c.dSt/1000,5)}</td></tr>
+   <tr><td>Stack Conc.</td><td colspan="2" style="color:var(--am)">${f(c.dC,4)} g/Nm³</td></tr>
+  </table></div>
+  <div class="cd"><h3>Material</h3><table class="dt">
+   <tr><th style="text-align:left">Name</th><th>%</th><th>H₂O%</th><th>t/h</th></tr>
+   ${s.mat.filter(m=>m.s>0).map(m=>{const v=c.fR*m.s/(s.mat.reduce((a,x)=>a+x.s,0)||100);return `<tr><td>${m.n}</td><td>${m.s}</td><td style="color:var(--cy)">${m.m}</td><td>${f(v,1)}</td></tr>`}).join('')}
+   <tr style="border-top:2px solid var(--am)"><td><b>Total</b></td><td>${s.mat.reduce((a,m)=>a+m.s,0)}</td><td style="color:var(--cy)">${f(c.fM,2)}</td><td style="color:var(--am)"><b>${f(c.fR,1)}</b></td></tr>
+  </table></div>
+ </div>`;
+}
+
+function rFans(){
+ const c=C,s=S;
+ return `<div class="cd"><h3>Fan Sizing</h3><div class="tw"><div><table class="dt">
+  <tr><th style="text-align:left">Param</th><th>Operation</th><th>Layout</th></tr>
+  <tr><td>Vol Nm³/h</td><td>${fN(c.gFnI)}</td><td>${fN(c.fVL)}</td></tr>
+  <tr><td>Actual m³/h</td><td>${fN(c.fAct)}</td><td>${fN(c.fAL)}</td></tr>
+  <tr><td>ΔP mbar</td><td>${f(c.dpF,1)}</td><td>${f(c.fDL,1)}</td></tr>
+  <tr><td>η %</td><td>${s.fanEffOp}</td><td>${s.fanEffLay}</td></tr>
+  <tr><td><b>Power kW</b></td><td style="color:var(--am)"><b>${f(c.fPO,0)}</b></td><td style="color:var(--rd)"><b>${f(c.fPL,0)}</b></td></tr>
+ </table></div><div><table class="dt">
+  <tr><th style="text-align:left">Pressure</th><th>mbar</th></tr>
+  <tr><td>Atmospheric</td><td>${f(c.Pa,1)}</td></tr>
+  <tr><td>ΔP Mill</td><td>${s.dpMill}</td></tr>
+  <tr><td>ΔP Filter</td><td>${s.dpFilter}</td></tr>
+  <tr><td>ΔP behind Filter</td><td>${s.dpBehFilter}</td></tr>
+  <tr><td><b>Fan Total ΔP</b></td><td style="color:var(--am)"><b>${f(c.dpF,1)}</b></td></tr>
+ </table></div></div></div>
+ <div class="cd"><h3>Scenarios (user-defined)</h3>
+ <p style="font-size:10px;color:var(--dm);margin-bottom:8px">All values editable. <b style="color:var(--am)">Apply</b> loads a scenario. <b style="color:var(--gn)">+ Add</b> captures current state.</p>
+ <div style="overflow-x:auto"><table class="st"><tr><th>Name</th><th>Amb°C</th><th>FA°C</th><th>Feed°C</th><th>InjW°C</th><th>RH%</th><th>InjW kg/h</th><th>Prod t/h</th>${s.mat.filter(m=>m.s>0).map(m=>`<th style="font-size:7px">${m.n}<br>%H₂O</th>`).join('')}<th></th></tr>
+ ${s.scenarios.map((sc,i)=>{const am=s.mat.map((m,mi)=>m.s>0?mi:-1).filter(x=>x>=0);return `<tr>
+  <td><input type="text" value="${sc.name}" onchange="S.scenarios[${i}].name=this.value"></td>
+  <td><input type="number" value="${sc.at}" step=".1" onchange="S.scenarios[${i}].at=+this.value||0"></td>
+  <td><input type="number" value="${sc.fat}" step=".1" onchange="S.scenarios[${i}].fat=+this.value||0"></td>
+  <td><input type="number" value="${sc.ft}" step=".1" onchange="S.scenarios[${i}].ft=+this.value||0"></td>
+  <td><input type="number" value="${sc.iwt}" step=".1" onchange="S.scenarios[${i}].iwt=+this.value||0"></td>
+  <td><input type="number" value="${sc.rh}" step="1" onchange="S.scenarios[${i}].rh=+this.value||0"></td>
+  <td><input type="number" value="${sc.iwr}" step="100" onchange="S.scenarios[${i}].iwr=+this.value||0"></td>
+  <td><input type="number" value="${sc.pr}" step="10" onchange="S.scenarios[${i}].pr=+this.value||0"></td>
+  ${am.map(mi=>`<td><input type="number" value="${sc.mm[mi]||0}" step=".1" style="color:var(--cy)" onchange="S.scenarios[${i}].mm[${mi}]=+this.value||0"></td>`).join('')}
+  <td style="white-space:nowrap"><button class="sb ap" onclick="aSc(${i})">Apply</button> <button class="sb dl" onclick="dSc(${i})">✕</button></td></tr>`}).join('')}
+ </table></div><div style="margin-top:8px"><button class="sb ad" onclick="nSc()">+ Add Scenario</button></div></div>
+ <div class="kg">${kpi('Elevation',s.elevation,' m','var(--bl)')}${kpi('Amb. Temp',s.ambTemp,' °C','var(--am)')}${kpi('Humidity',s.relHum,' %','var(--cy)')}${kpi('Dew Point',c.tdp,' °C','var(--bl)')}${kpi('P_atm',c.Pa,' mbar','var(--bl)')}</div>`;
+}
+
+function rInfo(){
+ return `<div class="ip" style="max-width:920px">
+
+ <h2>[Guide] What Is This Dashboard?</h2>
+ <p>Imagine a giant machine that crushes rocks into powder. That's a <b>Vertical Roller Mill (VRM)</b>. This dashboard calculates how much <b>heat</b> (energy) and <b>material</b> (stuff) goes into and comes out of that machine.</p>
+ <p>Think of it like baking cookies: you put in flour, sugar, butter (inputs), the oven adds heat, and you get cookies (output). Some heat escapes through the oven door. This dashboard tracks ALL of that — but for a cement factory.</p>
+
+ <div class="nt">[Play] <b>You can change ANY number</b> on the left sidebar and instantly see how it affects everything. Try it! Change the temperature, moisture, or production rate and watch all the numbers update.</div>
+
+ <h2>[Factory] Three Types of Mills</h2>
+
+ <h4>[RM] Raw Mill — Crushing Rocks</h4>
+ <p>Takes <b>limestone</b> and <b>clay</b> (wet rocks from the quarry) and grinds them into a fine powder called "raw meal." Hot gas from the cement kiln (a huge oven, 260°C) blows through the mill to <b>dry the wet rocks</b> while grinding them. This is where most of the heat energy goes — evaporating water from the rocks.</p>
+ <ul>
+  <li><b>Gas source:</b> Hot kiln exhaust gas (260°C, 347,000 Nm³/h)</li>
+  <li><b>Feed:</b> 75% limestone + 25% clay, ~1.5% moisture</li>
+  <li><b>Product:</b> 400 t/h of dry raw meal</li>
+  <li><b>Special feature:</b> Bypass mode — gas can skip the mill and go straight to the filter</li>
+  <li><b>Optional:</b> Cyclone separator between mill and filter</li>
+ </ul>
+
+ <h4>[CM] Coal Mill — Grinding Fuel</h4>
+ <p>Grinds coal or petcoke into fine powder that gets blown into the kiln as fuel. This mill is <b>dangerous</b> because coal dust can explode! So it uses <b>recirculating gas</b> (63%) to keep oxygen levels low and temperatures safe. The gas goes around and around in a loop.</p>
+ <ul>
+  <li><b>Gas source:</b> Kiln gas at lower temperature (160°C)</li>
+  <li><b>Feed:</b> Petcoke or coal, 1-10% moisture</li>
+  <li><b>Product:</b> 19-48 t/h of coal powder</li>
+  <li><b>Special:</b> 63% of exhaust gas is recycled back to the mill inlet</li>
+  <li><b>No cyclone</b> — gas goes directly to filter</li>
+  <li><b>25% reject</b> — coarse particles returned to mill</li>
+ </ul>
+
+ <h4>[CS] Cement Mill — Making Cement</h4>
+ <p>Grinds hot clinker (the cooked rocks from the kiln, ~112°C) with gypsum and limestone to make cement. There's <b>no kiln gas</b> here — the heat comes from the hot clinker itself! Fresh air is drawn in, and 82% of it recirculates to manage temperature. The mill outlet must stay below 90°C or the gypsum will lose its water and the cement quality suffers.</p>
+ <ul>
+  <li><b>Gas source:</b> Fresh air only (31,000 Nm³/h)</li>
+  <li><b>Feed:</b> 90% clinker + 5% gypsum + 5% limestone, clinker at 112°C</li>
+  <li><b>Product:</b> 260 t/h of cement</li>
+  <li><b>Special:</b> 82% gas recirculation, 4,830 kg/h injection water for cooling</li>
+  <li><b>No cyclone, no bypass, no kiln gas</b></li>
+ </ul>
+
+ <h2>[Heat] Heat Balance — Where Does the Energy Go?</h2>
+ <p>Everything that goes IN must come OUT. That's the law of physics (conservation of energy). This dashboard tracks every bit of heat:</p>
+
+ <h4>HEAT INPUTS (energy going in):</h4>
+ <ul>
+  <li><b>Hot Gas</b> — The biggest input for raw and coal mills. Hot gas from the kiln carries enormous amounts of heat. Think of it like a giant hair dryer blowing through the mill.</li>
+  <li><b>Mill Motor Power</b> — The electric motor that turns the grinding rollers. ALL the electricity turns into heat (friction, crushing). Calculated as: Product Rate × Specific Power × 3.6 / 1000</li>
+  <li><b>Material Heat</b> — If the feed is hot (like clinker at 112°C), it brings heat in. Cold limestone at 36°C brings very little.</li>
+  <li><b>Injection Water</b> — Warm water sprayed into the mill (for bed stability). Even at 30°C, it carries some heat.</li>
+  <li><b>False Air</b> — Outside air that leaks into the system through gaps, doors, seals. It's at ambient temperature.</li>
+ </ul>
+
+ <h4>HEAT OUTPUTS (energy going out):</h4>
+ <ul>
+  <li><b>Water Evaporation</b> — The biggest energy consumer! Turning liquid water into steam takes a LOT of energy: 2,256 kJ per kg of water. This is why wet feed requires so much heat.</li>
+  <li><b>Stack Gas</b> — The exhaust gas leaving through the chimney is still warm. That warmth is lost energy.</li>
+  <li><b>Radiation</b> — Heat lost through the mill's metal walls to the surrounding air.</li>
+ </ul>
+
+ <div class="fm">TOTAL HEAT IN = TOTAL HEAT OUT (always!)<br><br>
+ Specific Heat Requirement = Total Heat In ÷ Product Rate × 1000<br>
+ (tells you how much energy each kilogram of product needs)</div>
+
+ <h2>⚖ Mass Balance — Where Does the Material Go?</h2>
+ <p>Everything that goes in must come out as something. Rocks go in, powder comes out, water evaporates away.</p>
+
+ <div class="fm"><b>Feed Rate</b> = Product Rate (dry) ÷ (1 − Feed Moisture%/100)<br><br>
+ Example: You want 400 t/h of dry product, feed moisture is 1.5%<br>
+ Feed Rate = 400 ÷ (1 − 0.015) = 400 ÷ 0.985 = <b>406.1 t/h</b><br><br>
+ <b>Evaporation Water</b> = Water in Feed − Water in Product + Injection Water<br>
+ = (406.1 × 0.015) − (400 × 0) + (2880/1000)<br>
+ = 6.09 − 0 + 2.88 = <b>8.97 t/h</b></div>
+
+ <h2>[Wind] Gas Balance — How Much Air Flows Through?</h2>
+ <p>Gas volumes are measured at two conditions:</p>
+ <ul>
+  <li><b>Normal (Nm³/h)</b> — Volume at 0°C and 1013.25 mbar. This is the "standard" measurement.</li>
+  <li><b>Actual (m³/h)</b> — Volume at the real temperature and pressure. Hot gas expands, so actual volume is always bigger.</li>
+ </ul>
+
+ <div class="fm"><b>Actual Volume</b> = Normal Volume × (273.15 + Temperature) / 273.15 × 1013.25 / Local Pressure<br><br>
+ Example: 347,000 Nm³/h at 260°C and 983.6 mbar<br>
+ = 347,000 × (273.15+260)/273.15 × 1013.25/983.6<br>
+ = 347,000 × 1.952 × 1.030 = <b>697,740 m³/h</b></div>
+
+ <h4>Barometric Pressure</h4>
+ <p>The higher above sea level you are, the lower the air pressure. This matters because it affects gas density and volume.</p>
+ <div class="fm">P_atm = 1013.25 × (1 − 6.5 × Height / 288,000)^5.256<br><br>
+ At 250m above sea level: P = 1013.25 × 0.9706 = <b>983.6 mbar</b></div>
+
+ <h4>False Air</h4>
+ <p>No system is perfectly sealed. Air leaks in through doors, maintenance hatches, and seals. We estimate this as a percentage of the total gas volume at the mill outlet. For example, "FA Mill 7%" means 7% of the mill outlet gas volume is air that leaked into the mill.</p>
+
+ <h4>Dew Point</h4>
+ <p>The temperature at which water vapor in the gas starts to condense into liquid. If the gas temperature drops below the dew point inside ducts, water droplets form and cause corrosion. We must NEVER let this happen!</p>
+
+ <h2>⟳ Fan Sizing — How Powerful Must the Fan Be?</h2>
+ <p>The fan must push ALL the gas through the entire system. It needs to overcome the pressure drop of every piece of equipment (mill, filter, ducts).</p>
+
+ <div class="fm"><b>Fan Power</b> = Actual Volume × Gas Density × ΔP × 100 / (Efficiency × 3600)<br><br>
+ <b>Operation</b>: Normal running conditions<br>
+ <b>Layout</b>: Adds safety margins (+21% on ΔP, +15% on flow) for worst-case/startup. This is the size the fan manufacturer builds.</div>
+
+ <h2>[Play] How to Use This Dashboard</h2>
+ <ul>
+  <li><b>Switch mills:</b> Click [RM] Raw Mill, [CM] Coal Mill, or [CS] Cement Mill at the top. Each loads its own settings.</li>
+  <li><b>Change any value:</b> Every input on the left sidebar updates all calculations instantly.</li>
+  <li><b>Tabs:</b> Diagram (visual flow), Gas (volume table), Heat (input/output bars), Mass (dust tracking), Fans (scenarios + sizing).</li>
+  <li><b>Scenarios:</b> In the Fans tab, create/edit seasonal presets (Winter, Summer, etc.) with different temperatures, humidities, and material moistures.</li>
+  <li><b>Raw Mill cyclone:</b> Toggle on/off in the sidebar to see how it changes dust collection and gas volumes.</li>
+ </ul>
+
+ <h4>[Tip] Best Experiments to Try:</h4>
+ <ul>
+  <li><b>Change feed moisture</b> from 1% to 5% — watch evaporation heat skyrocket and gas volumes increase</li>
+  <li><b>Change ambient temperature</b> from 36°C to 0°C — see how false air cools the system</li>
+  <li><b>Change injection water</b> from 0 to 5000 kg/h — direct temperature control tool</li>
+  <li><b>Change elevation</b> from 0 to 3000m — watch barometric pressure drop and gas volumes increase</li>
+  <li><b>Change recirculation %</b> in coal mill — see how it affects inlet temperature</li>
+  <li><b>On cement mill:</b> Try reducing injection water to 0 — see how outlet temp rises above 90°C (bad for gypsum!)</li>
+ </ul>
+
+ <div class="nt">[Data] <b>Rule of thumb:</b> Each 1% increase in feed moisture needs roughly 25 kJ/kg more heat energy. In a 400 t/h mill, that's about 10 GJ/h of extra heat needed!</div>
+
+ </div>`;
+}
+
+// Scenario management
+function aSc(i){const sc=S.scenarios[i];if(!sc)return;S.ambTemp=sc.at;S.faTemp=sc.fat;S.feedTemp=sc.ft;S.injWTemp=sc.iwt;S.relHum=sc.rh;S.injWRate=sc.iwr;S.productRate=sc.pr;S.mat.forEach((m,j)=>{if(sc.mm&&sc.mm[j]!==undefined)m.m=sc.mm[j]});rc()}
+function nSc(){S.scenarios.push({name:"Sc "+(S.scenarios.length+1),at:S.ambTemp,fat:S.faTemp,ft:S.feedTemp,iwt:S.injWTemp,rh:S.relHum,iwr:S.injWRate,pr:S.productRate,mm:S.mat.map(m=>m.m)});rc()}
+function dSc(i){if(S.scenarios.length<=1)return;S.scenarios.splice(i,1);rc()}
+
+function rM(){document.getElementById('millSel').innerHTML=['rm','cm','cs','gd'].map(t=>{const l={rm:'🟡 Raw Mill',cm:'🔴 Coal Mill',cs:'🔵 Cement Mill',gd:'📖 Guide'}[t];return `<button class="mb ${t} ${mT===t||(t==='gd'&&aT==='info')?'active':''}" onclick="${t==='gd'?`aT='info';rn()`:`ldP('${t}');aT='diagram';rc()`}">${l}</button>`}).join('')}
+function rT(){const ts=[{i:'diagram',l:'◎ Diagram'},{i:'gas',l:'🜁 Gas'},{i:'heat',l:'🔥 Heat'},{i:'mass',l:'⚖ Mass'},{i:'fans',l:'⟳ Fans'},{i:'info',l:'📖 Guide'}];
+document.getElementById('tabBar').innerHTML=ts.map(t=>`<button class="tab ${aT===t.i?'active':''}" onclick="aT='${t.i}';rn()">${t.l}</button>`).join('')}
+function rn(){rM();rT();const e=document.getElementById('cnt');
+if(aT==='diagram')e.innerHTML=rDiag();else if(aT==='gas')e.innerHTML=rGas();else if(aT==='heat')e.innerHTML=rHeat();
+else if(aT==='mass')e.innerHTML=rMass();else if(aT==='fans')e.innerHTML=rFans();else if(aT==='info')e.innerHTML=rInfo();
+document.getElementById('pInfo').textContent=aT==='info'?'User Guide & Reference':`${PRESETS[mT].label} — Heat & Mass Balance`}
+function rc(){calc();rSide();rn()}
+calc();rSide();rn();
+</script>
+</body>
+</html>function rInfo(){
+ return `<div class="ip" style="max-width:920px">
+
+ <h2>[Guide] What Is This Dashboard?</h2>
+ <p>Imagine a giant machine that crushes rocks into powder. That's a <b>Vertical Roller Mill (VRM)</b>. This dashboard calculates how much <b>heat</b> (energy) and <b>material</b> (stuff) goes into and comes out of that machine.</p>
+ <p>Think of it like baking cookies: you put in flour, sugar, butter (inputs), the oven adds heat, and you get cookies (output). Some heat escapes through the oven door. This dashboard tracks ALL of that — but for a cement factory.</p>
+
+ <div class="nt">[Play] <b>You can change ANY number</b> on the left sidebar and instantly see how it affects everything. Try it! Change the temperature, moisture, or production rate and watch all the numbers update.</div>
+
+ <h2>[Factory] Three Types of Mills</h2>
+
+ <h4>[RM] Raw Mill — Crushing Rocks</h4>
+ <p>Takes <b>limestone</b> and <b>clay</b> (wet rocks from the quarry) and grinds them into a fine powder called "raw meal." Hot gas from the cement kiln (a huge oven, 260°C) blows through the mill to <b>dry the wet rocks</b> while grinding them. This is where most of the heat energy goes — evaporating water from the rocks.</p>
+ <ul>
+  <li><b>Gas source:</b> Hot kiln exhaust gas (260°C, 347,000 Nm³/h)</li>
+  <li><b>Feed:</b> 75% limestone + 25% clay, ~1.5% moisture</li>
+  <li><b>Product:</b> 400 t/h of dry raw meal</li>
+  <li><b>Special feature:</b> Bypass mode — gas can skip the mill and go straight to the filter</li>
+  <li><b>Optional:</b> Cyclone separator between mill and filter</li>
+ </ul>
+
+ <h4>[CM] Coal Mill — Grinding Fuel</h4>
+ <p>Grinds coal or petcoke into fine powder that gets blown into the kiln as fuel. This mill is <b>dangerous</b> because coal dust can explode! So it uses <b>recirculating gas</b> (63%) to keep oxygen levels low and temperatures safe. The gas goes around and around in a loop.</p>
+ <ul>
+  <li><b>Gas source:</b> Kiln gas at lower temperature (160°C)</li>
+  <li><b>Feed:</b> Petcoke or coal, 1-10% moisture</li>
+  <li><b>Product:</b> 19-48 t/h of coal powder</li>
+  <li><b>Special:</b> 63% of exhaust gas is recycled back to the mill inlet</li>
+  <li><b>No cyclone</b> — gas goes directly to filter</li>
+  <li><b>25% reject</b> — coarse particles returned to mill</li>
+ </ul>
+
+ <h4>[CS] Cement Mill — Making Cement</h4>
+ <p>Grinds hot clinker (the cooked rocks from the kiln, ~112°C) with gypsum and limestone to make cement. There's <b>no kiln gas</b> here — the heat comes from the hot clinker itself! Fresh air is drawn in, and 82% of it recirculates to manage temperature. The mill outlet must stay below 90°C or the gypsum will lose its water and the cement quality suffers.</p>
+ <ul>
+  <li><b>Gas source:</b> Fresh air only (31,000 Nm³/h)</li>
+  <li><b>Feed:</b> 90% clinker + 5% gypsum + 5% limestone, clinker at 112°C</li>
+  <li><b>Product:</b> 260 t/h of cement</li>
+  <li><b>Special:</b> 82% gas recirculation, 4,830 kg/h injection water for cooling</li>
+  <li><b>No cyclone, no bypass, no kiln gas</b></li>
+ </ul>
+
+ <h2>[Heat] Heat Balance — Where Does the Energy Go?</h2>
+ <p>Everything that goes IN must come OUT. That's the law of physics (conservation of energy). This dashboard tracks every bit of heat:</p>
+
+ <h4>HEAT INPUTS (energy going in):</h4>
+ <ul>
+  <li><b>Hot Gas</b> — The biggest input for raw and coal mills. Hot gas from the kiln carries enormous amounts of heat. Think of it like a giant hair dryer blowing through the mill.</li>
+  <li><b>Mill Motor Power</b> — The electric motor that turns the grinding rollers. ALL the electricity turns into heat (friction, crushing). Calculated as: Product Rate × Specific Power × 3.6 / 1000</li>
+  <li><b>Material Heat</b> — If the feed is hot (like clinker at 112°C), it brings heat in. Cold limestone at 36°C brings very little.</li>
+  <li><b>Injection Water</b> — Warm water sprayed into the mill (for bed stability). Even at 30°C, it carries some heat.</li>
+  <li><b>False Air</b> — Outside air that leaks into the system through gaps, doors, seals. It's at ambient temperature.</li>
+ </ul>
+
+ <h4>HEAT OUTPUTS (energy going out):</h4>
+ <ul>
+  <li><b>Water Evaporation</b> — The biggest energy consumer! Turning liquid water into steam takes a LOT of energy: 2,256 kJ per kg of water. This is why wet feed requires so much heat.</li>
+  <li><b>Stack Gas</b> — The exhaust gas leaving through the chimney is still warm. That warmth is lost energy.</li>
+  <li><b>Radiation</b> — Heat lost through the mill's metal walls to the surrounding air.</li>
+ </ul>
+
+ <div class="fm">TOTAL HEAT IN = TOTAL HEAT OUT (always!)<br><br>
+ Specific Heat Requirement = Total Heat In ÷ Product Rate × 1000<br>
+ (tells you how much energy each kilogram of product needs)</div>
+
+ <h2>⚖ Mass Balance — Where Does the Material Go?</h2>
+ <p>Everything that goes in must come out as something. Rocks go in, powder comes out, water evaporates away.</p>
+
+ <div class="fm"><b>Feed Rate</b> = Product Rate (dry) ÷ (1 − Feed Moisture%/100)<br><br>
+ Example: You want 400 t/h of dry product, feed moisture is 1.5%<br>
+ Feed Rate = 400 ÷ (1 − 0.015) = 400 ÷ 0.985 = <b>406.1 t/h</b><br><br>
+ <b>Evaporation Water</b> = Water in Feed − Water in Product + Injection Water<br>
+ = (406.1 × 0.015) − (400 × 0) + (2880/1000)<br>
+ = 6.09 − 0 + 2.88 = <b>8.97 t/h</b></div>
+
+ <h2>[Wind] Gas Balance — How Much Air Flows Through?</h2>
+ <p>Gas volumes are measured at two conditions:</p>
+ <ul>
+  <li><b>Normal (Nm³/h)</b> — Volume at 0°C and 1013.25 mbar. This is the "standard" measurement.</li>
+  <li><b>Actual (m³/h)</b> — Volume at the real temperature and pressure. Hot gas expands, so actual volume is always bigger.</li>
+ </ul>
+
+ <div class="fm"><b>Actual Volume</b> = Normal Volume × (273.15 + Temperature) / 273.15 × 1013.25 / Local Pressure<br><br>
+ Example: 347,000 Nm³/h at 260°C and 983.6 mbar<br>
+ = 347,000 × (273.15+260)/273.15 × 1013.25/983.6<br>
+ = 347,000 × 1.952 × 1.030 = <b>697,740 m³/h</b></div>
+
+ <h4>Barometric Pressure</h4>
+ <p>The higher above sea level you are, the lower the air pressure. This matters because it affects gas density and volume.</p>
+ <div class="fm">P_atm = 1013.25 × (1 − 6.5 × Height / 288,000)^5.256<br><br>
+ At 250m above sea level: P = 1013.25 × 0.9706 = <b>983.6 mbar</b></div>
+
+ <h4>False Air</h4>
+ <p>No system is perfectly sealed. Air leaks in through doors, maintenance hatches, and seals. We estimate this as a percentage of the total gas volume at the mill outlet. For example, "FA Mill 7%" means 7% of the mill outlet gas volume is air that leaked into the mill.</p>
+
+ <h4>Dew Point</h4>
+ <p>The temperature at which water vapor in the gas starts to condense into liquid. If the gas temperature drops below the dew point inside ducts, water droplets form and cause corrosion. We must NEVER let this happen!</p>
+
+ <h2>⟳ Fan Sizing — How Powerful Must the Fan Be?</h2>
+ <p>The fan must push ALL the gas through the entire system. It needs to overcome the pressure drop of every piece of equipment (mill, filter, ducts).</p>
+
+ <div class="fm"><b>Fan Power</b> = Actual Volume × Gas Density × ΔP × 100 / (Efficiency × 3600)<br><br>
+ <b>Operation</b>: Normal running conditions<br>
+ <b>Layout</b>: Adds safety margins (+21% on ΔP, +15% on flow) for worst-case/startup. This is the size the fan manufacturer builds.</div>
+
+ <h2>[Play] How to Use This Dashboard</h2>
+ <ul>
+  <li><b>Switch mills:</b> Click [RM] Raw Mill, [CM] Coal Mill, or [CS] Cement Mill at the top. Each loads its own settings.</li>
+  <li><b>Change any value:</b> Every input on the left sidebar updates all calculations instantly.</li>
+  <li><b>Tabs:</b> Diagram (visual flow), Gas (volume table), Heat (input/output bars), Mass (dust tracking), Fans (scenarios + sizing).</li>
+  <li><b>Scenarios:</b> In the Fans tab, create/edit seasonal presets (Winter, Summer, etc.) with different temperatures, humidities, and material moistures.</li>
+  <li><b>Raw Mill cyclone:</b> Toggle on/off in the sidebar to see how it changes dust collection and gas volumes.</li>
+ </ul>
+
+ <h4>[Tip] Best Experiments to Try:</h4>
+ <ul>
+  <li><b>Change feed moisture</b> from 1% to 5% — watch evaporation heat skyrocket and gas volumes increase</li>
+  <li><b>Change ambient temperature</b> from 36°C to 0°C — see how false air cools the system</li>
+  <li><b>Change injection water</b> from 0 to 5000 kg/h — direct temperature control tool</li>
+  <li><b>Change elevation</b> from 0 to 3000m — watch barometric pressure drop and gas volumes increase</li>
+  <li><b>Change recirculation %</b> in coal mill — see how it affects inlet temperature</li>
+  <li><b>On cement mill:</b> Try reducing injection water to 0 — see how outlet temp rises above 90°C (bad for gypsum!)</li>
+ </ul>
+
+ <div class="nt">[Data] <b>Rule of thumb:</b> Each 1% increase in feed moisture needs roughly 25 kJ/kg more heat energy. In a 400 t/h mill, that's about 10 GJ/h of extra heat needed!</div>
+
+ </div>`;
+}
+
+// Scenario management
+function aSc(i){const sc=S.scenarios[i];if(!sc)return;S.ambTemp=sc.at;S.faTemp=sc.fat;S.feedTemp=sc.ft;S.injWTemp=sc.iwt;S.relHum=sc.rh;S.injWRate=sc.iwr;S.productRate=sc.pr;S.mat.forEach((m,j)=>{if(sc.mm&&sc.mm[j]!==undefined)m.m=sc.mm[j]});rc()}
+function nSc(){S.scenarios.push({name:"Sc "+(S.scenarios.length+1),at:S.ambTemp,fat:S.faTemp,ft:S.feedTemp,iwt:S.injWTemp,rh:S.relHum,iwr:S.injWRate,pr:S.productRate,mm:S.mat.map(m=>m.m)});rc()}
+function dSc(i){if(S.scenarios.length<=1)return;S.scenarios.splice(i,1);rc()}
+
+function rM(){document.getElementById('millSel').innerHTML=['rm','cm','cs','gd'].map(t=>{const l={rm:'🟡 Raw Mill',cm:'🔴 Coal Mill',cs:'🔵 Cement Mill',gd:'📖 Guide'}[t];return `<button class="mb ${t} ${mT===t||(t==='gd'&&aT==='info')?'active':''}" onclick="${t==='gd'?`aT='info';rn()`:`ldP('${t}');aT='diagram';rc()`}">${l}</button>`}).join('')}
+function rT(){const ts=[{i:'diagram',l:'◎ Diagram'},{i:'gas',l:'🜁 Gas'},{i:'heat',l:'🔥 Heat'},{i:'mass',l:'⚖ Mass'},{i:'fans',l:'⟳ Fans'},{i:'info',l:'📖 Guide'}];
+document.getElementById('tabBar').innerHTML=ts.map(t=>`<button class="tab ${aT===t.i?'active':''}" onclick="aT='${t.i}';rn()">${t.l}</button>`).join('')}
+function rn(){rM();rT();const e=document.getElementById('cnt');
+if(aT==='diagram')e.innerHTML=rDiag();else if(aT==='gas')e.innerHTML=rGas();else if(aT==='heat')e.innerHTML=rHeat();
+else if(aT==='mass')e.innerHTML=rMass();else if(aT==='fans')e.innerHTML=rFans();else if(aT==='info')e.innerHTML=rInfo();
+document.getElementById('pInfo').textContent=aT==='info'?'User Guide & Reference':`${PRESETS[mT].label} — Heat & Mass Balance`}
+function rc(){calc();rSide();rn()}
+calc();rSide();rn();
+</script>
+</body>
+</html>

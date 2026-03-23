@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Cement Plant — PM Dashboard</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800;900&family=DM+Mono:wght@400;500&display=swap');
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'DM Sans', sans-serif; background: #020617; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: #0f172a; }
+  ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #475569; }
+  .font-mono { font-family: 'DM Mono', monospace; }
+  select option { background: #1e293b; color: #e2e8f0; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+// ─── Storage (localStorage) ──────────────────────────────────────────────────
+const storage = {
+  get: (key) => { try { const v = localStorage.getItem(key); return v ? { value: v } : null; } catch { return null; } },
+  set: (key, value) => { try { localStorage.setItem(key, value); return true; } catch { return false; } },
+  delete: (key) => { try { localStorage.removeItem(key); return true; } catch { return false; } },
+};
+
+// ─── Column Definitions ──────────────────────────────────────────────────────
+const DRAWING_COLS = [
+  { key:"drawingNo", label:"Drawing No.", type:"text", w:130 },
+  { key:"description", label:"Title / Description", type:"text", w:200 },
+  { key:"section", label:"Section / Building", type:"text", w:150 },
+  { key:"receivedOn", label:"Received On", type:"date", w:120 },
+  { key:"sentOn", label:"Sent On", type:"date", w:120 },
+  { key:"revNo", label:"Rev.", type:"text", w:55 },
+  { key:"status", label:"Status", type:"select", w:120, options:["Pending","Approved","Commented","Obsolete"] },
+  { key:"supersededBy", label:"Superseded By", type:"text", w:130 },
+  { key:"pendingWith", label:"Pending With", type:"text", w:130 },
+  { key:"pendingCivil", label:"Pend. Civil", type:"select", w:90, options:["No","Yes"] },
+  { key:"pendingElec", label:"Pend. Elec.", type:"select", w:90, options:["No","Yes"] },
+  { key:"pendingSupplier", label:"Pend. Supplier", type:"select", w:105, options:["No","Yes"] },
+  { key:"vendor", label:"Consultant / Vendor", type:"text", w:160 },
+  { key:"remarks", label:"Remarks", type:"text", w:200 },
+];
+const MAIL_COLS = [
+  { key:"refNo", label:"Mail / Ref. No.", type:"text", w:120 },
+  { key:"direction", label:"Direction", type:"select", w:105, options:["Incoming","Outgoing"] },
+  { key:"stakeholder", label:"Stakeholder", type:"select", w:115, options:["Client","Supplier","Holtec","Consultant","Contractor","Other"] },
+  { key:"organisation", label:"Organisation / Name", type:"text", w:170 },
+  { key:"dateOfMail", label:"Date of Mail", type:"date", w:120 },
+  { key:"dateReceived", label:"Date Received", type:"date", w:120 },
+  { key:"subjectCategory", label:"Subject Category", type:"select", w:160, options:["Drawing Submission","Approval","Query","Clarification","Action Required","Information","Other"] },
+  { key:"subject", label:"Subject / Description", type:"text", w:220 },
+  { key:"docRef", label:"Drawing / Doc. Ref.", type:"text", w:140 },
+  { key:"actionRequired", label:"Action Required", type:"text", w:180 },
+  { key:"actionBy", label:"Action By", type:"text", w:120 },
+  { key:"dueDate", label:"Due Date", type:"date", w:120 },
+  { key:"status", label:"Status", type:"select", w:155, options:["Open","Closed","Action Pending","No Action Required"] },
+  { key:"remarks", label:"Remarks / Reply Ref.", type:"text", w:200 },
+];
+const TASK_COLS = [
+  { key:"date", label:"Date", type:"date", w:120 },
+  { key:"task", label:"Task / Action", type:"text", w:220 },
+  { key:"category", label:"Category", type:"select", w:150, options:["Drawing Review","Meeting","Site Visit","Approval","Coordination","Inspection","Other"] },
+  { key:"priority", label:"Priority", type:"select", w:95, options:["High","Medium","Low"] },
+  { key:"assignedBy", label:"Assigned By", type:"text", w:130 },
+  { key:"assignedTo", label:"Assigned To", type:"text", w:130 },
+  { key:"relatedRef", label:"Related Drawing / Mail", type:"text", w:170 },
+  { key:"dueDate", label:"Due Date", type:"date", w:120 },
+  { key:"status", label:"Status", type:"select", w:125, options:["Not Started","In Progress","Completed","On Hold","Cancelled"] },
+  { key:"completedOn", label:"Completed On", type:"date", w:130 },
+  { key:"percentDone", label:"% Done", type:"number", w:80 },
+  { key:"building", label:"Building / Section", type:"select", w:170, options:["Raw Mill Building","Kiln Building","Clinker Silo","Cement Mill Building","Packing Plant","Coal Mill Building","Crusher Building","Stacker Reclaimer","Pre-heater Tower","Cooler Building","Control Room","Compressor House","Workshop","Warehouse","Administrative Block","Weigh Bridge","Effluent Treatment Plant","Substation","Other"] },
+  { key:"remarks", label:"Remarks", type:"text", w:200 },
+];
+const RCC_COLS = [
+  { key:"building", label:"Building Name", type:"text", w:200 },
+  { key:"estimated", label:"Estimated (m³)", type:"number", w:130 },
+  { key:"releasedToSite", label:"Released to Site (m³)", type:"number", w:160 },
+  { key:"withHoltec", label:"With Holtec (m³)", type:"number", w:145 },
+  { key:"withSupplier", label:"With Supplier (m³)", type:"number", w:150 },
+  { key:"balance", label:"Balance (m³)", type:"calc", w:120 },
+  { key:"percentReleased", label:"% Released", type:"calc", w:100 },
+  { key:"rccStatus", label:"Status", type:"calc", w:120 },
+];
+const RCC_BUILDINGS = ["Raw Mill Building","Kiln Building","Clinker Silo","Cement Mill Building","Packing Plant","Coal Mill Building","Crusher Building","Stacker Reclaimer","Pre-heater Tower","Cooler Building","Control Room","Compressor House","Workshop","Warehouse","Administrative Block","Weigh Bridge","Effluent Treatment Plant","Substation"];
+const TABS = [
+  { id:"civil",      label:"Civil Drawings",      icon:"📐", cols:DRAWING_COLS },
+  { id:"mechanical", label:"Mechanical GA",        icon:"⚙️", cols:DRAWING_COLS },
+  { id:"steel",      label:"Steel Fab Drawings",   icon:"🏗️", cols:DRAWING_COLS },
+  { id:"rcc",        label:"RCC Quantity",         icon:"🧱", cols:RCC_COLS },
+  { id:"mail",       label:"Mail Register",        icon:"📬", cols:MAIL_COLS },
+  { id:"tasks",      label:"Daily Tasks",          icon:"✅", cols:TASK_COLS },
+];
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+const newId = () => Math.random().toString(36).slice(2,10);
+const mkRow = (cols) => { const r={_id:newId()}; cols.forEach(c=>{ if(c.type!=="calc") r[c.key]=""; }); return r; };
+const mkRccRow = (b="") => ({ _id:newId(), building:b, estimated:"", releasedToSite:"", withHoltec:"", withSupplier:"" });
+const defaultRccRows = () => RCC_BUILDINGS.map(b=>mkRccRow(b));
+const rccCalc = (row) => {
+  const est=parseFloat(row.estimated)||0, rel=parseFloat(row.releasedToSite)||0;
+  const bal=est-rel, pct=est>0?((rel/est)*100).toFixed(1):"0.0";
+  let st="Not Started"; if(rel>0&&rel<est)st="In Progress"; else if(est>0&&rel>=est)st="Complete";
+  return { balance:bal.toFixed(2), percentReleased:pct+"%", rccStatus:st };
+};
+const isOverdue = (d,s) => { if(!d)return false; if(["Completed","Closed","Cancelled","No Action Required","Approved"].includes(s))return false; return new Date(d)<new Date(); };
+const statusBadge = (v) => {
+  const m = {
+    "Approved":"#059669:#d1fae5","Complete":"#059669:#d1fae5","Completed":"#059669:#d1fae5","Closed":"#059669:#d1fae5",
+    "Pending":"#d97706:#fef3c7","In Progress":"#d97706:#fef3c7","Open":"#d97706:#fef3c7","Action Pending":"#d97706:#fef3c7",
+    "Not Started":"#475569:#e2e8f0","Commented":"#ea580c:#ffedd5","On Hold":"#ea580c:#ffedd5",
+    "Obsolete":"#64748b:#e2e8f0","Cancelled":"#64748b:#e2e8f0","No Action Required":"#64748b:#e2e8f0",
+    "High":"#dc2626:#fee2e2","Medium":"#d97706:#fef3c7","Low":"#059669:#d1fae5",
+    "Incoming":"#0284c7:#e0f2fe","Outgoing":"#65a30d:#f0fdf4",
+  };
+  if(!m[v]) return null;
+  const [bg,tx]=m[v].split(":");
+  return { background:bg+"22", color:tx, border:`1px solid ${bg}55`, borderRadius:4, padding:"1px 7px", fontSize:11, fontWeight:600, display:"inline-block", whiteSpace:"nowrap" };
+};
+
+// ─── Summary ──────────────────────────────────────────────────────────────────
+const computeSummary = (tabId,rows) => {
+  if(["civil","mechanical","steel"].includes(tabId)){
+    const t=rows.length,a=rows.filter(r=>r.status==="Approved").length,p=rows.filter(r=>r.status==="Pending").length,c=rows.filter(r=>r.status==="Commented").length,o=rows.filter(r=>r.status==="Obsolete").length,pct=t>0?Math.round(a/t*100):0;
+    return [{l:"Total",v:t,c:"#e2e8f0"},{l:"Approved",v:a,c:"#34d399"},{l:"Pending",v:p,c:"#fbbf24"},{l:"Commented",v:c,c:"#fb923c"},{l:"Obsolete",v:o,c:"#64748b"},{l:"% Approved",v:pct+"%",c:"#6ee7b7"}];
+  }
+  if(tabId==="rcc"){
+    const te=rows.reduce((s,r)=>s+(parseFloat(r.estimated)||0),0),tr=rows.reduce((s,r)=>s+(parseFloat(r.releasedToSite)||0),0),pct=te>0?((tr/te)*100).toFixed(1):0;
+    return [{l:"Buildings",v:rows.length,c:"#e2e8f0"},{l:"Est. Total m³",v:te.toFixed(0),c:"#e2e8f0"},{l:"Released m³",v:tr.toFixed(0),c:"#34d399"},{l:"Balance m³",v:(te-tr).toFixed(0),c:"#fbbf24"},{l:"% Released",v:pct+"%",c:"#6ee7b7"}];
+  }
+  if(tabId==="mail"){
+    const t=rows.length,i=rows.filter(r=>r.direction==="Incoming").length,o=rows.filter(r=>r.direction==="Outgoing").length,op=rows.filter(r=>r.status==="Open").length,cl=rows.filter(r=>r.status==="Closed").length,ov=rows.filter(r=>isOverdue(r.dueDate,r.status)).length;
+    return [{l:"Total",v:t,c:"#e2e8f0"},{l:"Incoming",v:i,c:"#38bdf8"},{l:"Outgoing",v:o,c:"#86efac"},{l:"Open",v:op,c:"#fbbf24"},{l:"Closed",v:cl,c:"#34d399"},{l:"Overdue",v:ov,c:"#f87171"}];
+  }
+  if(tabId==="tasks"){
+    const t=rows.length,ns=rows.filter(r=>r.status==="Not Started").length,ip=rows.filter(r=>r.status==="In Progress").length,cp=rows.filter(r=>r.status==="Completed").length,ov=rows.filter(r=>isOverdue(r.dueDate,r.status)).length,hi=rows.filter(r=>r.priority==="High").length;
+    return [{l:"Total",v:t,c:"#e2e8f0"},{l:"Not Started",v:ns,c:"#94a3b8"},{l:"In Progress",v:ip,c:"#fbbf24"},{l:"Completed",v:cp,c:"#34d399"},{l:"Overdue",v:ov,c:"#f87171"},{l:"High Priority",v:hi,c:"#f87171"}];
+  }
+  return [];
+};
+
+// ─── Cell ─────────────────────────────────────────────────────────────────────
+function Cell({col,value,onSave,isEditing,onStartEdit,rowOverdue,calcVal}){
+  const [draft,setDraft]=useState(value);
+  const ref=useRef();
+  useEffect(()=>setDraft(value),[value]);
+  useEffect(()=>{ if(isEditing&&ref.current) ref.current.focus(); },[isEditing]);
+
+  const tdBase = { minWidth:col.w, padding:"6px 10px", fontSize:12, cursor:"pointer", verticalAlign:"middle", borderBottom:"1px solid #1e293b", transition:"background 0.15s", whiteSpace:"nowrap" };
+
+  if(col.type==="calc"){
+    const badge=col.key==="rccStatus"?statusBadge(calcVal):null;
+    return <td style={{...tdBase,cursor:"default",color:"#94a3b8"}}>{badge?<span style={badge}>{calcVal}</span>:<span style={{fontFamily:"'DM Mono',monospace"}}>{calcVal}</span>}</td>;
+  }
+
+  const badge=statusBadge(value);
+  const isStatusCol=["status","rccStatus","priority","direction"].includes(col.key);
+
+  if(!isEditing){
+    return <td onClick={onStartEdit} style={{...tdBase,color:rowOverdue&&col.key==="dueDate"?"#f87171":"#cbd5e1"}}
+      onMouseEnter={e=>e.currentTarget.style.background="#1e293b"}
+      onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
+      {isStatusCol&&badge&&value?<span style={badge}>{value}</span>:<span style={{display:"block",overflow:"hidden",textOverflow:"ellipsis",maxWidth:col.w+40}}>{value||<span style={{color:"#334155",fontStyle:"italic",fontSize:11}}>—</span>}</span>}
+    </td>;
+  }
+
+  const inputStyle={width:"100%",background:"#0f172a",border:"1px solid #f59e0b",color:"#f1f5f9",fontSize:12,borderRadius:4,padding:"3px 8px",outline:"none",fontFamily:"inherit"};
+  const handleKey=(e)=>{ if(e.key==="Enter"||e.key==="Tab"){onSave(draft);e.preventDefault();} if(e.key==="Escape"){setDraft(value);onSave(value);} };
+
+  if(col.type==="select") return <td style={{minWidth:col.w,padding:"4px 6px",borderBottom:"1px solid #1e293b"}}>
+    <select ref={ref} value={draft} style={inputStyle} onChange={e=>{setDraft(e.target.value);onSave(e.target.value);}} onBlur={()=>onSave(draft)}>
+      <option value="">—</option>
+      {col.options.map(o=><option key={o} value={o}>{o}</option>)}
+    </select></td>;
+
+  return <td style={{minWidth:col.w,padding:"4px 6px",borderBottom:"1px solid #1e293b"}}>
+    <input ref={ref} type={col.type==="date"?"date":col.type==="number"?"number":"text"} value={draft}
+      onChange={e=>setDraft(e.target.value)} onBlur={()=>onSave(draft)} onKeyDown={handleKey}
+      min={col.type==="number"?0:undefined} style={inputStyle}/>
+  </td>;
+}
+
+// ─── Table ────────────────────────────────────────────────────────────────────
+function DataTable({tabId,cols,rows,onUpdate,onDelete}){
+  const [editCell,setEditCell]=useState(null);
+  const handleSave=(ri,key,val)=>{ const u=rows.map((r,i)=>i===ri?{...r,[key]:val}:r); onUpdate(u); setEditCell(null); };
+
+  const thStyle={padding:"8px 10px",fontSize:11,fontWeight:700,color:"#f59e0b",textTransform:"uppercase",letterSpacing:"0.05em",textAlign:"left",borderBottom:"2px solid #334155",position:"sticky",top:0,background:"#0f172a",whiteSpace:"nowrap"};
+
+  return <div style={{overflowX:"auto",flex:1}}>
+    <table style={{borderCollapse:"collapse",width:"100%",minWidth:cols.reduce((s,c)=>s+c.w,0)+120}}>
+      <thead><tr>
+        <th style={{...thStyle,width:44}}>#</th>
+        {cols.map(c=><th key={c.key} style={{...thStyle,minWidth:c.w}}>{c.label}</th>)}
+        <th style={{...thStyle,width:36}}></th>
+      </tr></thead>
+      <tbody>
+        {rows.length===0&&<tr><td colSpan={cols.length+2} style={{padding:"48px 16px",textAlign:"center",color:"#475569",fontSize:13,fontStyle:"italic"}}>No entries yet. Click "+ Add Row" to begin.</td></tr>}
+        {rows.map((row,ri)=>{
+          const calc=tabId==="rcc"?rccCalc(row):{};
+          const ov=isOverdue(row.dueDate,row.status);
+          const ob=row.status==="Obsolete"||row.status==="Cancelled";
+          const rowBg=ov?"rgba(239,68,68,0.06)":ob?"rgba(15,23,42,0.8)":ri%2===0?"rgba(15,23,42,0.5)":"rgba(30,41,59,0.3)";
+          return <tr key={row._id} style={{background:rowBg,opacity:ob?0.55:1}}>
+            <td style={{padding:"6px 10px",fontSize:11,color:"#475569",fontFamily:"'DM Mono',monospace",borderBottom:"1px solid #1e293b",width:44}}>{ri+1}</td>
+            {cols.map(c=><Cell key={c.key} col={c} value={row[c.key]??""} calcVal={calc[c.key]??""} isEditing={editCell?.ri===ri&&editCell?.key===c.key} onStartEdit={()=>c.type!=="calc"&&setEditCell({ri,key:c.key})} onSave={val=>handleSave(ri,c.key,val)} rowOverdue={ov}/>)}
+            <td style={{padding:"4px 6px",textAlign:"center",borderBottom:"1px solid #1e293b"}}>
+              <button onClick={()=>onDelete(row._id)} style={{background:"none",border:"none",color:"#334155",cursor:"pointer",fontSize:13,padding:"2px 5px"}}
+                onMouseEnter={e=>e.currentTarget.style.color="#f87171"} onMouseLeave={e=>e.currentTarget.style.color="#334155"} title="Delete row">✕</button>
+            </td>
+          </tr>;
+        })}
+      </tbody>
+    </table>
+  </div>;
+}
+
+// ─── App ──────────────────────────────────────────────────────────────────────
+function App(){
+  const [projects,setProjects]=useState([]);
+  const [activeProject,setActiveProject]=useState(null);
+  const [activeTab,setActiveTab]=useState("civil");
+  const [data,setData]=useState({});
+  const [loading,setLoading]=useState(true);
+  const [showNewProj,setShowNewProj]=useState(false);
+  const [newProjName,setNewProjName]=useState("");
+  const [showDelConfirm,setShowDelConfirm]=useState(false);
+  const [searchQ,setSearchQ]=useState("");
+  const [notif,setNotif]=useState(null);
+
+  const notify=(msg,type="ok")=>{ setNotif({msg,type}); setTimeout(()=>setNotif(null),2500); };
+  const skey=(pid,tid)=>`cpdash_${pid}_${tid}`;
+
+  useEffect(()=>{
+    const pr=storage.get("cpdash_projects"); const pList=pr?JSON.parse(pr.value):[];
+    setProjects(pList); setActiveProject(pList[0]||null);
+    const allData={};
+    pList.forEach(p=>{ allData[p.id]={}; TABS.forEach(t=>{ const r=storage.get(skey(p.id,t.id)); allData[p.id][t.id]=r?JSON.parse(r.value):(t.id==="rcc"?defaultRccRows():[]); }); });
+    setData(allData); setLoading(false);
+  },[]);
+
+  const saveProjects=(pList)=>{ storage.set("cpdash_projects",JSON.stringify(pList)); };
+  const saveTabData=(pid,tid,rows)=>{ storage.set(skey(pid,tid),JSON.stringify(rows)); };
+
+  const createProject=()=>{
+    const name=newProjName.trim(); if(!name)return;
+    const id=newId(), proj={id,name,createdAt:new Date().toISOString()}, pList=[...projects,proj];
+    setProjects(pList); saveProjects(pList);
+    const nd={};
+    TABS.forEach(t=>{ const rows=t.id==="rcc"?defaultRccRows():[]; nd[t.id]=rows; saveTabData(id,t.id,rows); });
+    setData(d=>({...d,[id]:nd})); setActiveProject(proj); setNewProjName(""); setShowNewProj(false);
+    notify(`Project "${name}" created`);
+  };
+
+  const deleteProject=()=>{
+    if(!activeProject)return;
+    const pList=projects.filter(p=>p.id!==activeProject.id); setProjects(pList); saveProjects(pList);
+    TABS.forEach(t=>storage.delete(skey(activeProject.id,t.id)));
+    setData(d=>{ const nd={...d}; delete nd[activeProject.id]; return nd; });
+    setActiveProject(pList[0]||null); setShowDelConfirm(false); notify("Project deleted","err");
+  };
+
+  const getRows=()=>activeProject?data[activeProject.id]?.[activeTab]||[]:[];
+
+  const updateRows=(rows)=>{
+    if(!activeProject)return;
+    setData(d=>({...d,[activeProject.id]:{...d[activeProject.id],[activeTab]:rows}}));
+    saveTabData(activeProject.id,activeTab,rows);
+  };
+
+  const addRow=()=>{
+    const tab=TABS.find(t=>t.id===activeTab);
+    const r=activeTab==="rcc"?mkRccRow():mkRow(tab.cols);
+    updateRows([...getRows(),r]); notify("Row added");
+  };
+
+  const deleteRow=(id)=>updateRows(getRows().filter(r=>r._id!==id));
+
+  const filteredRows=()=>{ const rows=getRows(); if(!searchQ.trim())return rows; const q=searchQ.toLowerCase(); return rows.filter(r=>Object.values(r).some(v=>String(v).toLowerCase().includes(q))); };
+
+  const exportCSV=()=>{
+    const rows=getRows(), cols=TABS.find(t=>t.id===activeTab).cols.filter(c=>c.type!=="calc");
+    const header=["#",...cols.map(c=>c.label)].join(",");
+    const body=rows.map((r,i)=>[i+1,...cols.map(c=>`"${String(r[c.key]||"").replace(/"/g,'""')}"`).join(",")].join(","));
+    // rewrite join
+    const csvRows=[header,...rows.map((r,i)=>{ const vals=cols.map(c=>`"${String(r[c.key]||"").replace(/"/g,'""')}"`); return [i+1,...vals].join(","); })];
+    const csv=csvRows.join("\n");
+    const blob=new Blob([csv],{type:"text/csv"}); const url=URL.createObjectURL(blob);
+    const a=document.createElement("a"); a.href=url; a.download=`${activeProject?.name}_${activeTab}_${new Date().toISOString().slice(0,10)}.csv`; a.click(); URL.revokeObjectURL(url);
+    notify("CSV exported");
+  };
+
+  const summary=computeSummary(activeTab,getRows());
+  const tab=TABS.find(t=>t.id===activeTab);
+
+  if(loading) return <div style={{minHeight:"100vh",background:"#020617",display:"flex",alignItems:"center",justifyContent:"center"}}>
+    <div style={{color:"#f59e0b",fontSize:20,fontFamily:"'DM Mono',monospace",letterSpacing:"0.15em"}}>LOADING DASHBOARD…</div>
+  </div>;
+
+  // Styles
+  const S={
+    app:{minHeight:"100vh",background:"#020617",display:"flex",flexDirection:"column",color:"#f1f5f9"},
+    header:{background:"#0f172a",borderBottom:"1px solid #1e293b",padding:"12px 24px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:16,flexWrap:"wrap"},
+    logo:{width:36,height:36,background:"#f59e0b",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,fontSize:14,color:"#0f172a",flexShrink:0},
+    brandTitle:{fontSize:16,fontWeight:800,color:"#fff",letterSpacing:"-0.01em",lineHeight:1.2},
+    brandSub:{fontSize:10,color:"#f59e0b",letterSpacing:"0.12em",fontWeight:600,textTransform:"uppercase"},
+    divider:{width:1,height:32,background:"#1e293b",margin:"0 8px"},
+    label:{fontSize:11,color:"#475569",textTransform:"uppercase",letterSpacing:"0.06em"},
+    select:{background:"#1e293b",border:"1px solid #334155",color:"#e2e8f0",fontSize:13,borderRadius:6,padding:"5px 10px",outline:"none",cursor:"pointer"},
+    btnPrimary:{background:"#d97706",border:"none",color:"#0f172a",fontSize:12,fontWeight:800,padding:"6px 14px",borderRadius:6,cursor:"pointer"},
+    btnGhost:{background:"none",border:"1px solid #334155",color:"#94a3b8",fontSize:12,padding:"5px 12px",borderRadius:6,cursor:"pointer"},
+    tabBar:{background:"#0f172a",borderBottom:"1px solid #1e293b",padding:"0 16px",display:"flex",alignItems:"flex-end",gap:2,overflowX:"auto"},
+    summaryBar:{background:"rgba(15,23,42,0.9)",borderBottom:"1px solid #1e293b",padding:"10px 24px",display:"flex",alignItems:"center",gap:24,overflowX:"auto",flexShrink:0},
+    toolbar:{background:"#020617",padding:"8px 24px",display:"flex",alignItems:"center",justifyContent:"space-between",borderBottom:"1px solid #1e293b",flexShrink:0},
+    input:{background:"#1e293b",border:"1px solid #334155",color:"#e2e8f0",fontSize:13,borderRadius:6,padding:"5px 12px",outline:"none",width:160},
+    modal:{position:"fixed",inset:0,background:"rgba(0,0,0,0.75)",zIndex:100,display:"flex",alignItems:"center",justifyContent:"center"},
+    modalBox:{background:"#0f172a",borderRadius:12,padding:24,width:340,boxShadow:"0 25px 50px rgba(0,0,0,0.6)"},
+    modalInput:{width:"100%",background:"#1e293b",border:"1px solid #475569",color:"#e2e8f0",fontSize:13,borderRadius:6,padding:"8px 12px",outline:"none",marginBottom:16,fontFamily:"inherit"},
+    footer:{background:"#0f172a",borderTop:"1px solid #1e293b",padding:"8px 24px",display:"flex",justifyContent:"space-between",alignItems:"center"},
+  };
+
+  return <div style={S.app}>
+    {/* Notification */}
+    {notif&&<div style={{position:"fixed",top:16,right:16,zIndex:200,padding:"10px 18px",borderRadius:8,fontSize:13,fontWeight:600,background:notif.type==="err"?"#450a0a":"#052e16",color:notif.type==="err"?"#fca5a5":"#86efac",border:`1px solid ${notif.type==="err"?"#7f1d1d":"#14532d"}`,boxShadow:"0 8px 24px rgba(0,0,0,0.5)"}}>{notif.msg}</div>}
+
+    {/* Header */}
+    <header style={S.header}>
+      <div style={{display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}>
+        <div style={{display:"flex",alignItems:"center",gap:10}}>
+          <div style={S.logo}>CP</div>
+          <div><div style={S.brandTitle}>CEMENT PLANT</div><div style={S.brandSub}>Project Management Dashboard</div></div>
+        </div>
+        <div style={S.divider}/>
+        <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
+          <span style={S.label}>Project:</span>
+          {projects.length>0
+            ?<select style={S.select} value={activeProject?.id||""} onChange={e=>{setActiveProject(projects.find(p=>p.id===e.target.value));setSearchQ("");}}>
+              {projects.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+            :<span style={{color:"#475569",fontSize:12,fontStyle:"italic"}}>No projects yet</span>}
+          <button style={S.btnPrimary} onClick={()=>setShowNewProj(true)}>+ New Project</button>
+          {activeProject&&<button onClick={()=>setShowDelConfirm(true)} style={{background:"none",border:"none",color:"#475569",cursor:"pointer",fontSize:16,padding:"2px 4px"}} title="Delete project">🗑</button>}
+        </div>
+      </div>
+      <div style={{display:"flex",alignItems:"center",gap:8}}>
+        {activeProject&&<input style={{...S.input,width:160}} placeholder="Search…" value={searchQ} onChange={e=>setSearchQ(e.target.value)}/>}
+        {activeProject&&<button style={S.btnGhost} onClick={exportCSV}>↓ Export CSV</button>}
+      </div>
+    </header>
+
+    {/* New Project Modal */}
+    {showNewProj&&<div style={S.modal} onClick={()=>setShowNewProj(false)}>
+      <div style={{...S.modalBox,border:"1px solid #92400e"}} onClick={e=>e.stopPropagation()}>
+        <div style={{fontSize:17,fontWeight:800,color:"#f59e0b",marginBottom:16}}>Create New Project</div>
+        <input autoFocus style={S.modalInput} placeholder="e.g. Rajasthan Plant Phase 1" value={newProjName}
+          onChange={e=>setNewProjName(e.target.value)} onKeyDown={e=>e.key==="Enter"&&createProject()}/>
+        <div style={{display:"flex",gap:8,justifyContent:"flex-end"}}>
+          <button style={{...S.btnGhost,background:"none"}} onClick={()=>setShowNewProj(false)}>Cancel</button>
+          <button style={S.btnPrimary} onClick={createProject}>Create</button>
+        </div>
+      </div>
+    </div>}
+
+    {/* Delete Confirm Modal */}
+    {showDelConfirm&&<div style={S.modal} onClick={()=>setShowDelConfirm(false)}>
+      <div style={{...S.modalBox,border:"1px solid #7f1d1d"}} onClick={e=>e.stopPropagation()}>
+        <div style={{fontSize:17,fontWeight:800,color:"#f87171",marginBottom:8}}>Delete Project?</div>
+        <p style={{fontSize:13,color:"#94a3b8",marginBottom:20}}>This will permanently delete <strong style={{color:"#f1f5f9"}}>"{activeProject?.name}"</strong> and all its data.</p>
+        <div style={{display:"flex",gap:8,justifyContent:"flex-end"}}>
+          <button style={S.btnGhost} onClick={()=>setShowDelConfirm(false)}>Cancel</button>
+          <button style={{...S.btnPrimary,background:"#dc2626",color:"#fff"}} onClick={deleteProject}>Delete</button>
+        </div>
+      </div>
+    </div>}
+
+    {!activeProject
+      ?<div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:16}}>
+        <div style={{fontSize:64,opacity:0.2}}>🏭</div>
+        <div style={{fontSize:18,color:"#475569",fontWeight:600}}>No project selected</div>
+        <button style={{...S.btnPrimary,padding:"12px 24px",fontSize:14}} onClick={()=>setShowNewProj(true)}>+ Create Your First Project</button>
+      </div>
+      :<div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden"}}>
+
+        {/* Tabs */}
+        <div style={S.tabBar}>
+          {TABS.map(t=>{
+            const count=data[activeProject.id]?.[t.id]?.length||0;
+            const isActive=activeTab===t.id;
+            return <button key={t.id} onClick={()=>{setActiveTab(t.id);setSearchQ("");}}
+              style={{background:"none",border:"none",borderBottom:isActive?"2px solid #f59e0b":"2px solid transparent",color:isActive?"#f59e0b":"#64748b",fontSize:12,fontWeight:600,padding:"12px 14px",cursor:"pointer",display:"flex",alignItems:"center",gap:6,whiteSpace:"nowrap",fontFamily:"inherit"}}>
+              <span>{t.icon}</span><span>{t.label}</span>
+              <span style={{background:isActive?"rgba(217,119,6,0.2)":"#1e293b",color:isActive?"#f59e0b":"#475569",borderRadius:4,padding:"1px 6px",fontSize:10,fontWeight:700}}>{count}</span>
+            </button>;
+          })}
+        </div>
+
+        {/* Summary bar */}
+        <div style={S.summaryBar}>
+          <div style={{fontSize:11,color:"#475569",textTransform:"uppercase",letterSpacing:"0.07em",fontWeight:700,marginRight:8,flexShrink:0}}>{tab.icon} {tab.label}</div>
+          {summary.map((s,i)=><div key={i} style={{display:"flex",flexDirection:"column",alignItems:"center",flexShrink:0,minWidth:60}}>
+            <div style={{fontSize:22,fontWeight:900,color:s.c,fontFamily:"'DM Mono',monospace",lineHeight:1.1}}>{s.v}</div>
+            <div style={{fontSize:10,color:"#475569",whiteSpace:"nowrap",textAlign:"center"}}>{s.l}</div>
+          </div>)}
+        </div>
+
+        {/* Toolbar */}
+        <div style={S.toolbar}>
+          <div style={{fontSize:11,color:"#334155"}}>{filteredRows().length}{searchQ?` of ${getRows().length} `:" "}rows{activeTab!=="rcc"?" · Click any cell to edit":""}</div>
+          <button style={{...S.btnPrimary,padding:"6px 16px"}} onClick={addRow}>+ Add Row</button>
+        </div>
+
+        {/* Table */}
+        <div style={{flex:1,overflow:"auto"}}>
+          <DataTable key={activeProject.id+activeTab} tabId={activeTab} cols={tab.cols} rows={filteredRows()} onUpdate={searchQ?()=>{}:updateRows} onDelete={deleteRow}/>
+        </div>
+      </div>}
+
+    {/* Footer */}
+    <footer style={S.footer}>
+      <div style={{fontSize:11,color:"#334155"}}>Data auto-saved in browser · Works offline · No server required</div>
+      <div style={{fontSize:11,color:"#334155",fontFamily:"'DM Mono',monospace"}}>{new Date().toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"})}</div>
+    </footer>
+  </div>;
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>

@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Silo & Hopper — Capacity Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0d12;--surface:#111621;--surface2:#171d2a;--surface3:#1e2536;--border:#262e42;--text:#e4e9f2;--text2:#7e8ba2;--text3:#4e5a72;--accent:#4478ff;--accent2:#6b9aff;--accentDim:rgba(68,120,255,.10);--green:#34d399;--greenBg:rgba(52,211,153,.07);--greenBd:rgba(52,211,153,.22);--amber:#fbbf24;--amberBg:rgba(251,191,36,.07);--amberBd:rgba(251,191,36,.22);--red:#f87171;--redBg:rgba(248,113,113,.07);--redBd:rgba(248,113,113,.22);--cyan:#22d3ee;--purple:#a78bfa;--dimLine:#3a4560;--dimText:#8ea0c4}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.header{background:linear-gradient(135deg,var(--surface),var(--surface2));border-bottom:1px solid var(--border);padding:16px 28px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:100;backdrop-filter:blur(16px)}
+.header-icon{width:40px;height:40px;background:linear-gradient(135deg,var(--accent),var(--purple));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px}
+.header h1{font-size:18px;font-weight:700;letter-spacing:-.3px}.header p{font-size:11px;color:var(--text2);margin-top:1px}
+.tab-bar{display:flex;gap:3px;padding:10px 28px;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto}
+.tab{padding:7px 16px;border-radius:7px;font-size:12.5px;font-weight:500;color:var(--text2);cursor:pointer;white-space:nowrap;transition:all .2s;border:1px solid transparent;user-select:none}
+.tab:hover{color:var(--text);background:var(--surface2)}.tab.active{color:var(--accent2);background:var(--accentDim);border-color:rgba(68,120,255,.18)}
+.main{padding:20px 28px;max-width:1700px;margin:0 auto}
+.tab-content{display:none}.tab-content.active{display:block}
+.calc-grid{display:grid;grid-template-columns:300px 1fr;gap:20px}
+@media(max-width:1100px){.calc-grid{grid-template-columns:1fr}}
+.inp-panel{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;height:fit-content;position:sticky;top:80px}
+.inp-panel h3{font-size:13px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:7px}
+.inp-panel h3::before{content:'';width:3px;height:14px;background:var(--accent);border-radius:2px}
+.fld{margin-bottom:13px}.fld label{display:flex;justify-content:space-between;align-items:baseline;font-size:11px;font-weight:500;color:var(--text2);margin-bottom:5px}
+.fld .u{font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--text3);background:var(--surface3);padding:1px 5px;border-radius:3px}
+.fld input[type=number],.fld select{width:100%;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:13px;outline:none;transition:border-color .2s}
+.fld input:focus{border-color:var(--accent)}
+.sr{display:flex;align-items:center;gap:8px}.sr input[type=range]{flex:1;-webkit-appearance:none;height:3px;background:var(--surface3);border-radius:2px;border:none;padding:0}
+.sr input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid var(--bg)}
+.sv{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent2);min-width:52px;text-align:right}
+.divider{height:1px;background:var(--border);margin:16px 0}
+.out-area{display:flex;flex-direction:column;gap:16px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;overflow:hidden}
+.card-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.card-t{font-size:13px;font-weight:600;display:flex;align-items:center;gap:7px}
+.badge{font-size:10px;font-weight:500;padding:3px 8px;border-radius:5px;background:var(--greenBg);color:var(--green);border:1px solid var(--greenBd)}
+.mrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:10px}
+.m{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:13px}
+.m .lb{font-size:10px;font-weight:500;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px}
+.m .vl{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:600}
+.m .vl .us{font-size:11px;font-weight:400;color:var(--text2);margin-left:3px}
+.m.hl{border-color:var(--accent);background:var(--accentDim)}.m.hl .vl{color:var(--accent2)}
+.adv{display:flex;align-items:flex-start;gap:10px;padding:13px 16px;border-radius:10px;font-size:12.5px;line-height:1.55;margin-bottom:8px}.adv:last-child{margin-bottom:0}
+.adv.green{background:var(--greenBg);border:1px solid var(--greenBd)}.adv.amber{background:var(--amberBg);border:1px solid var(--amberBd)}.adv.red{background:var(--redBg);border:1px solid var(--redBd)}
+.adv .ic{font-size:16px;flex-shrink:0;margin-top:1px}.adv strong{font-weight:600}
+.diag-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.diag-card .card-h{padding:20px 20px 0 20px}
+.diag-wrap{display:flex;justify-content:center;align-items:center;padding:10px 8px 16px 8px;overflow:visible}
+.diag-wrap svg text{font-family:'JetBrains Mono',monospace;transition:all .3s}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:900px){.duo{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-icon">⬡</div>
+  <div><h1>Silo & Hopper — Capacity Calculator</h1><p>Real-time diagrams · Interactive scenarios · Structural advisory</p></div>
+</div>
+<div class="tab-bar">
+  <div class="tab active" data-tab="round">Round Hopper</div>
+  <div class="tab" data-tab="rect">Rect. Hopper</div>
+  <div class="tab" data-tab="conical">Conical Silo</div>
+  <div class="tab" data-tab="flat">Flat Bottom Silo</div>
+</div>
+<div class="main">
+
+<!-- ROUND HOPPER -->
+<div class="tab-content active" id="tab-round"><div class="calc-grid">
+  <div class="inp-panel"><h3>Round Hopper</h3>
+    <div class="fld"><label>Capacity <span class="u">T</span></label><input type="number" id="rh_cap" value="0" min="10" step="50"></div>
+    <div class="fld"><label>Bulk Density <span class="u">t/m³</span></label><input type="number" id="rh_den" value="0" min=".3" max="3" step=".01"></div>
+    <div class="divider"></div>
+    <div class="fld"><label>Cylinder Dia D <span class="u">mm</span></label>
+      <div class="sr"><input type="range" id="rh_D_s" min="2000" max="30000" step="500" value="2000"><span class="sv" id="rh_D_v">10000</span></div>
+      <input type="number" id="rh_D" value="0" min="2000" max="30000" step="100" style="margin-top:5px">
+    </div>
+    <div class="fld"><label>Outlet Dia d <span class="u">mm</span></label><input type="number" id="rh_d" value="0" min="200" max="5000" step="50"></div>
+    <div class="fld"><label>Cone Angle x° <span class="u">deg</span></label><div class="sr"><input type="range" id="rh_x_s" min="30" max="75" step="1" value="30"><span class="sv" id="rh_x_v">55°</span></div></div>
+    <div class="fld"><label>Settle Angle y° <span class="u">deg</span></label><div class="sr"><input type="range" id="rh_y_s" min="5" max="50" step="1" value="5"><span class="sv" id="rh_y_v">10°</span></div></div>
+  </div>
+  <div class="out-area" id="rh_out"></div>
+</div></div>
+
+<!-- RECT HOPPER -->
+<div class="tab-content" id="tab-rect"><div class="calc-grid">
+  <div class="inp-panel"><h3>Rectangular Hopper</h3>
+    <div class="fld"><label>Capacity <span class="u">T</span></label><input type="number" id="rc_cap" value="0" min="10" step="10"></div>
+    <div class="fld"><label>Bulk Density <span class="u">t/m³</span></label><input type="number" id="rc_den" value="0" min=".3" max="3" step=".01"></div>
+    <div class="divider"></div>
+    <div class="fld"><label>Length A <span class="u">mm</span></label><input type="number" id="rc_A" value="0" min="1000" max="20000" step="100"></div>
+    <div class="fld"><label>Width B <span class="u">mm</span></label><input type="number" id="rc_B" value="0" min="1000" max="20000" step="100"></div>
+    <div class="fld"><label>Outlet a <span class="u">mm</span></label><input type="number" id="rc_a" value="0" min="200" max="5000" step="50"></div>
+    <div class="fld"><label>Outlet b <span class="u">mm</span></label><input type="number" id="rc_b" value="0" min="200" max="5000" step="50"></div>
+    <div class="fld"><label>Hopper Angle x° <span class="u">deg</span></label><div class="sr"><input type="range" id="rc_x_s" min="30" max="75" step="1" value="30"><span class="sv" id="rc_x_v">50°</span></div></div>
+    <div class="fld"><label>Settle Angle y° <span class="u">deg</span></label><div class="sr"><input type="range" id="rc_y_s" min="10" max="50" step="1" value="10"><span class="sv" id="rc_y_v">33°</span></div></div>
+  </div>
+  <div class="out-area" id="rc_out"></div>
+</div></div>
+
+<!-- CONICAL SILO -->
+<div class="tab-content" id="tab-conical"><div class="calc-grid">
+  <div class="inp-panel"><h3>Conical Silo</h3>
+    <div class="fld"><label>Capacity <span class="u">T</span></label><input type="number" id="cs_cap" value="0" min="100" step="100"></div>
+    <div class="fld"><label>Bulk Density <span class="u">t/m³</span></label><input type="number" id="cs_den" value="0" min=".3" max="3" step=".01"></div>
+    <div class="divider"></div>
+    <div class="fld"><label>Silo Dia D <span class="u">mm</span></label>
+      <div class="sr"><input type="range" id="cs_D_s" min="3000" max="40000" step="500" value="3000"><span class="sv" id="cs_D_v">16000</span></div>
+      <input type="number" id="cs_D" value="0" min="3000" max="40000" step="100" style="margin-top:5px">
+    </div>
+    <div class="fld"><label>Ring Beam W (A) <span class="u">mm</span></label><input type="number" id="cs_A" value="0" min="300" max="3000" step="10"></div>
+    <div class="fld"><label>Ring Beam D (B) <span class="u">mm</span></label><input type="number" id="cs_B" value="0" min="200" max="2000" step="10"></div>
+    <div class="fld"><label>Cone Angle x° <span class="u">deg</span></label><div class="sr"><input type="range" id="cs_x_s" min="30" max="75" step="1" value="30"><span class="sv" id="cs_x_v">60°</span></div></div>
+    <div class="fld"><label>Settle Angle y° <span class="u">deg</span></label><div class="sr"><input type="range" id="cs_y_s" min="10" max="50" step="1" value="10"><span class="sv" id="cs_y_v">25°</span></div></div>
+  </div>
+  <div class="out-area" id="cs_out"></div>
+</div></div>
+
+<!-- FLAT BOTTOM SILO -->
+<div class="tab-content" id="tab-flat"><div class="calc-grid">
+  <div class="inp-panel"><h3>Flat Bottom Silo</h3>
+    <div class="fld"><label>Capacity <span class="u">T</span></label><input type="number" id="fs_cap" value="0" min="100" step="500"></div>
+    <div class="fld"><label>Bulk Density <span class="u">t/m³</span></label><input type="number" id="fs_den" value="0" min=".3" max="3" step=".01"></div>
+    <div class="divider"></div>
+    <div class="fld"><label>Diameter <span class="u">m</span></label>
+      <div class="sr"><input type="range" id="fs_d_s" min="5" max="80" step="1" value="5"><span class="sv" id="fs_d_v">45 m</span></div>
+      <input type="number" id="fs_dia" value="0" min="5" max="80" step=".5" style="margin-top:5px">
+    </div>
+    <div class="fld"><label>Bottom Incl. a1 <span class="u">deg</span></label><div class="sr"><input type="range" id="fs_a1_s" min="30" max="75" step="1" value="30"><span class="sv" id="fs_a1_v">60°</span></div></div>
+    <div class="fld"><label>Top Incl. a2 <span class="u">deg</span></label><div class="sr"><input type="range" id="fs_a2_s" min="20" max="55" step="1" value="20"><span class="sv" id="fs_a2_v">38°</span></div></div>
+    <div class="fld"><label>Top Clearance <span class="u">mm</span></label><input type="number" id="fs_cl" value="0" min="300" max="3000" step="100"></div>
+  </div>
+  <div class="out-area" id="fs_out"></div>
+</div></div>
+
+</div>
+<script>
+const PI=Math.PI,rad=d=>d*PI/180;
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');document.getElementById('tab-'+t.dataset.tab).classList.add('active');
+}));
+function sync(sId,vId,nId,suf=''){const s=document.getElementById(sId),v=document.getElementById(vId),n=nId?document.getElementById(nId):null;if(!s)return;s.oninput=()=>{v.textContent=s.value+suf;if(n)n.value=s.value;go();};if(n)n.oninput=()=>{s.value=n.value;v.textContent=n.value+suf;go();};}
+sync('rh_D_s','rh_D_v','rh_D');sync('rh_x_s','rh_x_v',null,'°');sync('rh_y_s','rh_y_v',null,'°');
+sync('rc_x_s','rc_x_v',null,'°');sync('rc_y_s','rc_y_v',null,'°');
+sync('cs_D_s','cs_D_v','cs_D');sync('cs_x_s','cs_x_v',null,'°');sync('cs_y_s','cs_y_v',null,'°');
+sync('fs_d_s','fs_d_v','fs_dia',' m');sync('fs_a1_s','fs_a1_v',null,'°');sync('fs_a2_s','fs_a2_v',null,'°');
+document.querySelectorAll('input').forEach(i=>i.addEventListener('input',go));
+function V(id){return parseFloat(document.getElementById(id).value)||0}
+function S(id){return parseFloat(document.getElementById(id).value)||0}
+function F(n,d=2){return n.toLocaleString('en-IN',{minimumFractionDigits:d,maximumFractionDigits:d})}
+function F0(n){return F(n,0)}function F1(n){return F(n,1)}
+
+function advise(type,dM,cT,hM){
+  let a=[];
+  if(type==='silo'){
+    if(dM>18)a.push({l:'red',i:'⚠',t:'Prestressing Required',m:`Dia ${F1(dM)}m > 18m — prestressed concrete strongly recommended for high hoop tension.`});
+    else if(dM>12)a.push({l:'amber',i:'⚡',t:'Prestressing May Be Needed',m:`Dia ${F1(dM)}m in 12–18m range. Evaluate hoop stresses; prestressing may be required.`});
+    else a.push({l:'green',i:'✓',t:'No Prestressing Needed',m:`Dia ${F1(dM)}m ≤ 12m — standard RCC sufficient.`});
+  }
+  if(cT>20000)a.push({l:'red',i:'🏗',t:'RCC Structure Recommended',m:`${F0(cT)}T — RCC recommended for economy, durability & thermal resistance.`});
+  else if(cT>5000)a.push({l:'amber',i:'⚖',t:'RCC or Steel — Evaluate',m:`${F0(cT)}T — both viable. Steel: faster. RCC: lower maintenance. Do lifecycle analysis.`});
+  else if(cT>500)a.push({l:'green',i:'🔩',t:'Steel Preferred',m:`${F0(cT)}T — steel is typically more economical.`});
+  else a.push({l:'green',i:'🔩',t:'Steel Recommended',m:`${F0(cT)}T — steel for economy & speed.`});
+  if(hM&&dM){const r=hM/dM;if(r>5)a.push({l:'red',i:'📐',t:'High H/D = '+F1(r),m:'Exceeds 5 — wind & seismic loads critical. Increase diameter or reduce height.'});else if(r>3)a.push({l:'amber',i:'📐',t:'Moderate H/D = '+F1(r),m:'Ensure wind & seismic analysis. Stiffening rings may be needed.'});}
+  return a;
+}
+function aHTML(a){return a.map(x=>`<div class="adv ${x.l}"><span class="ic">${x.i}</span><div><strong>${x.t}</strong><br>${x.m}</div></div>`).join('')}
+
+function svgDimV(x,y1,y2,label){
+  const my=(y1+y2)/2;
+  return `<line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}" stroke="var(--dimLine)" stroke-width=".7" stroke-dasharray="3 2"/>
+  <polygon points="${x},${y1} ${x-3},${y1+5} ${x+3},${y1+5}" fill="var(--dimLine)"/>
+  <polygon points="${x},${y2} ${x-3},${y2-5} ${x+3},${y2-5}" fill="var(--dimLine)"/>
+  <text x="${x+4}" y="${my+3}" fill="var(--dimText)" font-size="9" text-anchor="start">${label}</text>`;
+}
+function svgDimH(y,x1,x2,label,off=0){
+  const mx=(x1+x2)/2;
+  return `<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="var(--dimLine)" stroke-width=".7" stroke-dasharray="3 2"/>
+  <polygon points="${x1},${y} ${x1+5},${y-3} ${x1+5},${y+3}" fill="var(--dimLine)"/>
+  <polygon points="${x2},${y} ${x2-5},${y-3} ${x2-5},${y+3}" fill="var(--dimLine)"/>
+  <text x="${mx}" y="${y+12+off}" fill="var(--dimText)" font-size="9" text-anchor="middle">${label}</text>`;
+}
+function svgAng(cx,cy,label){return `<text x="${cx}" y="${cy}" fill="var(--cyan)" font-size="9" font-weight="600">${label}</text>`}
+function extLine(x1,y1,x2,y2){return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="var(--dimLine)" stroke-width=".3"/>`}
+
+// ═══════ ROUND HOPPER ═══════
+function calcRH(){
+  const cap=V('rh_cap'),den=V('rh_den'),D=V('rh_D'),d=V('rh_d'),x=S('rh_x_s'),y=S('rh_y_s');
+  const vol=cap/den,R=D/2,r=d/2;
+  const h1=(R-r)*Math.tan(rad(x)),v1=(PI*h1/3)*(R*R+R*r+r*r)/1e9;
+  const h3=R*Math.tan(rad(y)),v3=(PI*R*R*h3/3)/1e9;
+  const v2=vol-v1-v3,h2=v2>0?(v2/(PI*R*R/1e6))*1000:0;
+  const H=h1+Math.max(h2,0)+h3;
+
+  const W=460,pL=65,pR=100,drawW=W-pL-pR,sc=drawW/D,hsc=Math.min(sc,360/Math.max(H,1));
+  const sD=D*sc,sd=d*sc,sh3=h3*hsc,sh2=Math.max(h2,0)*hsc,sh1=h1*hsc,sH=sh3+sh2+sh1;
+  const svgH=sH+100,cx=pL+sD/2,yt=35;
+  const dX=cx+sD/2+14,dX2=cx+sD/2+52;
+  const yT=yt,yV=yt+sh3,yC=yt+sh3+sh2,yB=yt+sH;
+
+  const svg=`<svg width="${W}" height="${svgH}" viewBox="0 0 ${W} ${svgH}">
+    <defs>
+      <linearGradient id="gRH" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fbbf24" stop-opacity=".05"/><stop offset="100%" stop-color="#fbbf24" stop-opacity=".22"/></linearGradient>
+      <linearGradient id="cRH" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#4478ff" stop-opacity=".04"/><stop offset="100%" stop-color="#4478ff" stop-opacity=".16"/></linearGradient>
+      <pattern id="hRH" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="rgba(251,191,36,.10)" stroke-width="1"/></pattern>
+    </defs>
+    <polygon points="${cx},${yt} ${cx-sD/2},${yV} ${cx+sD/2},${yV}" fill="url(#hRH)" stroke="var(--text3)" stroke-width="1" stroke-dasharray="5 3"/>
+    ${sh3>12?`<text x="${cx}" y="${yt+sh3/2+3}" fill="var(--text3)" font-size="8" text-anchor="middle">VACANT</text>`:''}
+    <rect x="${cx-sD/2}" y="${yV}" width="${sD}" height="${sh2}" fill="url(#gRH)" stroke="var(--accent)" stroke-width="1.6" rx="1"/>
+    <rect x="${cx-sD/2}" y="${yV}" width="4" height="${sh2}" fill="var(--accent)" opacity=".18"/>
+    <rect x="${cx+sD/2-4}" y="${yV}" width="4" height="${sh2}" fill="var(--accent)" opacity=".18"/>
+    ${sh2>20?`<text x="${cx}" y="${yV+sh2/2+3}" fill="var(--accent2)" font-size="9.5" text-anchor="middle" opacity=".6">CYLINDER</text>`:''}
+    <polygon points="${cx-sD/2},${yC} ${cx+sD/2},${yC} ${cx+sd/2},${yB} ${cx-sd/2},${yB}" fill="url(#cRH)" stroke="var(--accent)" stroke-width="1.6"/>
+    <line x1="${cx-sD/2}" y1="${yC}" x2="${cx-sd/2}" y2="${yB}" stroke="var(--accent)" stroke-width="3" opacity=".12"/>
+    <line x1="${cx+sD/2}" y1="${yC}" x2="${cx+sd/2}" y2="${yB}" stroke="var(--accent)" stroke-width="3" opacity=".12"/>
+    ${sh1>20?`<text x="${cx}" y="${yC+sh1/2+3}" fill="var(--accent2)" font-size="9.5" text-anchor="middle" opacity=".6">CONE</text>`:''}
+    <line x1="${cx-sd/2}" y1="${yB}" x2="${cx+sd/2}" y2="${yB}" stroke="var(--red)" stroke-width="2"/>
+    <rect x="${cx-sd/2-2}" y="${yB}" width="${sd+4}" height="5" fill="var(--red)" opacity=".15" rx="1"/>
+    <line x1="${cx}" y1="${yt-8}" x2="${cx}" y2="${yB+8}" stroke="var(--text3)" stroke-width=".5" stroke-dasharray="8 4"/>
+    <text x="${cx}" y="${yt-10}" fill="var(--text3)" font-size="7" text-anchor="middle">CL</text>
+    ${extLine(cx+sD/2,yT,dX2+8,yT)}${extLine(cx+sD/2,yV,dX+4,yV)}${extLine(cx+sD/2,yC,dX+4,yC)}${extLine(cx+sd/2,yB,dX2+8,yB)}
+    ${sh3>8?svgDimV(dX,yT,yV,`h3 = ${F0(h3)}`):''}
+    ${sh2>8?svgDimV(dX,yV,yC,`h2 = ${F0(Math.max(h2,0))}`):''}
+    ${sh1>8?svgDimV(dX,yC,yB,`h1 = ${F0(h1)}`):''}
+    ${svgDimV(dX2,yT,yB,`H = ${F0(H)}`)}
+    ${svgDimH(yB+20,cx-sD/2,cx+sD/2,`D = ${F0(D)} mm`)}
+    ${svgDimH(yB+36,cx-sd/2,cx+sd/2,`d = ${F0(d)} mm`)}
+    ${svgAng(cx+sd/2+10,yB-8,`x = ${x}°`)}
+    ${svgAng(cx+sD/2-30,yt+10,`y = ${y}°`)}
+    <rect x="${pL-45}" y="${yV}" width="28" height="${sh2+sh1}" rx="4" fill="url(#gRH)" stroke="var(--amber)" stroke-width=".8" stroke-dasharray="3 2"/>
+    <text x="${pL-31}" y="${yV+5}" fill="var(--amber)" font-size="7" text-anchor="middle" transform="rotate(-90,${pL-31},${yV+(sh2+sh1)/2})">MATERIAL</text>
+  </svg>`;
+
+  const adv=advise('silo',D/1000,cap,H/1000);
+  document.getElementById('rh_out').innerHTML=`
+    <div class="duo">
+      <div class="diag-card"><div class="card-h"><span class="card-t">🔧 Live Cross-Section</span><span class="badge">Real-time</span></div><div class="diag-wrap">${svg}</div></div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="card"><div class="card-h"><span class="card-t">📊 Volumes</span></div><div class="mrow">
+          <div class="m hl"><div class="lb">Required Volume</div><div class="vl">${F(vol)}<span class="us">m³</span></div></div>
+          <div class="m"><div class="lb">Cone (v1)</div><div class="vl">${F(v1)}<span class="us">m³</span></div></div>
+          <div class="m"><div class="lb">Cylinder (v2)</div><div class="vl">${F(Math.max(v2,0))}<span class="us">m³</span></div></div>
+          <div class="m"><div class="lb">Vacant (v3)</div><div class="vl">${F(v3)}<span class="us">m³</span></div></div>
+        </div></div>
+        <div class="card"><div class="card-h"><span class="card-t">📏 Heights</span></div><div class="mrow">
+          <div class="m"><div class="lb">Cone h1</div><div class="vl">${F0(h1)}<span class="us">mm</span></div></div>
+          <div class="m"><div class="lb">Cylinder h2</div><div class="vl">${F0(Math.max(h2,0))}<span class="us">mm</span></div></div>
+          <div class="m"><div class="lb">Vacant h3</div><div class="vl">${F0(h3)}<span class="us">mm</span></div></div>
+          <div class="m hl"><div class="lb">Total H</div><div class="vl">${F0(H)}<span class="us">mm</span></div></div>
+        </div></div>
+      </div>
+    </div>
+    <div class="card"><div class="card-h"><span class="card-t">🏗 Structural Advisory</span></div>${aHTML(adv)}</div>`;
+}
+
+// ═══════ RECT HOPPER ═══════
+function calcRC(){
+  const cap=V('rc_cap'),den=V('rc_den'),A=V('rc_A'),B=V('rc_B'),a=V('rc_a'),b=V('rc_b'),x=S('rc_x_s'),y=S('rc_y_s');
+  const vol=cap/den,h1=((A-a)/2)*Math.tan(rad(x));
+  const A1=A*B/1e6,A2=a*b/1e6,Am=((A+a)/2)*((B+b)/2)/1e6;
+  const v1=(h1/1000/6)*(A1+A2+4*Am);
+  const h3=Math.max(A,B)/2*Math.tan(rad(y)),v3=(A/1000)*(B/1000)*(h3/1000)/3;
+  const v2=vol-v1-v3,h2=v2>0?(v2/((A/1000)*(B/1000)))*1000:0;
+  const H=h1+Math.max(h2,0)+h3;
+  const z=Math.atan(Math.sqrt(Math.pow(Math.tan(rad(x)),2)*(1+Math.pow(B/A,2))))*180/PI;
+
+  const W=460,pL=65,pR=100,drawW=W-pL-pR,sc=drawW/A,hsc=Math.min(sc,340/Math.max(H,1));
+  const sA=A*sc,sa=a*sc,sh3=h3*hsc,sh2=Math.max(h2,0)*hsc,sh1=h1*hsc,sH=sh3+sh2+sh1;
+  const svgH=sH+100,cx=pL+sA/2,yt=35;
+  const dX=cx+sA/2+14,dX2=cx+sA/2+52;
+  const yT=yt,yV=yt+sh3,yC=yt+sh3+sh2,yB=yt+sH;
+
+  const svg=`<svg width="${W}" height="${svgH}" viewBox="0 0 ${W} ${svgH}">
+    <defs>
+      <linearGradient id="gRC" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fbbf24" stop-opacity=".05"/><stop offset="100%" stop-color="#fbbf24" stop-opacity=".22"/></linearGradient>
+      <linearGradient id="cRC" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#4478ff" stop-opacity=".04"/><stop offset="100%" stop-color="#4478ff" stop-opacity=".16"/></linearGradient>
+    </defs>
+    <polygon points="${cx},${yt} ${cx-sA/2},${yV} ${cx+sA/2},${yV}" fill="none" stroke="var(--text3)" stroke-width="1" stroke-dasharray="5 3"/>
+    ${sh3>12?`<text x="${cx}" y="${yt+sh3/2+3}" fill="var(--text3)" font-size="8" text-anchor="middle">VACANT</text>`:''}
+    <rect x="${cx-sA/2}" y="${yV}" width="${sA}" height="${sh2}" fill="url(#gRC)" stroke="var(--accent)" stroke-width="1.6" rx="1"/>
+    <rect x="${cx-sA/2}" y="${yV}" width="4" height="${sh2}" fill="var(--accent)" opacity=".18"/>
+    <rect x="${cx+sA/2-4}" y="${yV}" width="4" height="${sh2}" fill="var(--accent)" opacity=".18"/>
+    ${sh2>18?`<text x="${cx}" y="${yV+sh2/2+3}" fill="var(--accent2)" font-size="9.5" text-anchor="middle" opacity=".6">RECTANGULAR</text>`:''}
+    <polygon points="${cx-sA/2},${yC} ${cx+sA/2},${yC} ${cx+sa/2},${yB} ${cx-sa/2},${yB}" fill="url(#cRC)" stroke="var(--accent)" stroke-width="1.6"/>
+    <line x1="${cx-sA/2}" y1="${yC}" x2="${cx-sa/2}" y2="${yB}" stroke="var(--accent)" stroke-width="3" opacity=".12"/>
+    <line x1="${cx+sA/2}" y1="${yC}" x2="${cx+sa/2}" y2="${yB}" stroke="var(--accent)" stroke-width="3" opacity=".12"/>
+    ${sh1>18?`<text x="${cx}" y="${yC+sh1/2+3}" fill="var(--accent2)" font-size="9.5" text-anchor="middle" opacity=".6">PYRAMID</text>`:''}
+    <line x1="${cx-sa/2}" y1="${yB}" x2="${cx+sa/2}" y2="${yB}" stroke="var(--red)" stroke-width="2"/>
+    <line x1="${cx}" y1="${yt-8}" x2="${cx}" y2="${yB+8}" stroke="var(--text3)" stroke-width=".5" stroke-dasharray="8 4"/>
+    ${extLine(cx+sA/2,yT,dX2+8,yT)}${extLine(cx+sA/2,yV,dX+4,yV)}${extLine(cx+sA/2,yC,dX+4,yC)}${extLine(cx+sa/2,yB,dX2+8,yB)}
+    ${sh3>8?svgDimV(dX,yT,yV,`h3 = ${F0(h3)}`):''}
+    ${sh2>8?svgDimV(dX,yV,yC,`h2 = ${F0(Math.max(h2,0))}`):''}
+    ${sh1>8?svgDimV(dX,yC,yB,`h1 = ${F0(h1)}`):''}
+    ${svgDimV(dX2,yT,yB,`H = ${F0(H)}`)}
+    ${svgDimH(yB+20,cx-sA/2,cx+sA/2,`A = ${F0(A)} mm`)}
+    ${svgDimH(yB+36,cx-sa/2,cx+sa/2,`a = ${F0(a)} mm`)}
+    ${svgAng(cx+sa/2+10,yB-8,`x = ${x}°`)}
+  </svg>`;
+
+  const adv=advise('hopper',Math.max(A,B)/1000,cap,H/1000);
+  document.getElementById('rc_out').innerHTML=`
+    <div class="duo">
+      <div class="diag-card"><div class="card-h"><span class="card-t">🔧 Front Elevation (A-view)</span><span class="badge">Real-time</span></div><div class="diag-wrap">${svg}</div></div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="card"><div class="card-h"><span class="card-t">📊 Volumes</span></div><div class="mrow">
+          <div class="m hl"><div class="lb">Required Vol</div><div class="vl">${F(vol)}<span class="us">m³</span></div></div>
+          <div class="m"><div class="lb">Pyramid (v1)</div><div class="vl">${F(v1)}<span class="us">m³</span></div></div>
+          <div class="m"><div class="lb">Rect (v2)</div><div class="vl">${F(Math.max(v2,0))}<span class="us">m³</span></div></div>
+          <div class="m"><div class="lb">Vacant (v3)</div><div class="vl">${F(v3)}<span class="us">m³</span></div></div>
+        </div></div>
+        <div class="card"><div class="card-h"><span class="card-t">📏 Heights</span></div><div class="mrow">
+          <div class="m"><div class="lb">Pyramid h1</div><div class="vl">${F0(h1)}<span class="us">mm</span></div></div>
+          <div class="m"><div class="lb">Rect h2</div><div class="vl">${F0(Math.max(h2,0))}<span class="us">mm</span></div></div>
+          <div class="m"><div class="lb">Vacant h3</div><div class="vl">${F0(h3)}<span class="us">mm</span></div></div>
+          <div class="m hl"><div class="lb">Total H</div><div class="vl">${F0(H)}<span class="us">mm</span></div></div>
+          <div class="m"><div class="lb">Valley z°</div><div class="vl">${F1(z)}<span class="us">°</span></div></div>
+        </div></div>
+      </div>
+    </div>
+    <div class="card"><div class="card-h"><span class="card-t">🏗 Structural Advisory</span></div>${aHTML(adv)}</div>`;
+}
+
+// ═══════ CONICAL SILO ═══════
+function calcCS(){
+  const cap=V('cs_cap'),den=V('cs_den'),D=V('cs_D'),A_rb=V('cs_A'),B_rb=V('cs_B'),x0=S('cs_x_s'),y0=S('cs_y_s');
+  const vol=cap/den,R=D/2,rOut=500;
+  const h_cn=(R-rOut)*Math.tan(rad(x0)),v_cn=(PI*h_cn/3)*(R*R+R*rOut+rOut*rOut)/1e9;
+  const h3=R*Math.tan(rad(y0)),v3=(PI*R*R*h3/3)/1e9;
+  const cylV=vol-v_cn-v3,hCyl=cylV>0?(cylV/(PI*R*R/1e6))*1000:0;
+  const H=h_cn+Math.max(hCyl,0)+h3;
+
+  const W=460,pL=65,pR=110,drawW=W-pL-pR,sc=drawW/D,hsc=Math.min(sc,340/Math.max(H,1));
+  const sD=D*sc,sd=1000*sc,sh3=h3*hsc,shC=Math.max(hCyl,0)*hsc,shCn=h_cn*hsc,sH=sh3+shC+shCn;
+  const svgH=sH+100,cx=pL+sD/2,yt=35;
+  const dX=cx+sD/2+14,dX2=cx+sD/2+58;
+  const yT=yt,yV=yt+sh3,yCyl=yt+sh3+shC,yB=yt+sH;
+  const rbW=Math.min(A_rb*sc*.5,20),rbH=Math.min(B_rb*hsc*.5,14);
+
+  const svg=`<svg width="${W}" height="${svgH}" viewBox="0 0 ${W} ${svgH}">
+    <defs>
+      <linearGradient id="gCS" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fbbf24" stop-opacity=".05"/><stop offset="100%" stop-color="#fbbf24" stop-opacity=".22"/></linearGradient>
+      <linearGradient id="cCS" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#4478ff" stop-opacity=".04"/><stop offset="100%" stop-color="#4478ff" stop-opacity=".16"/></linearGradient>
+    </defs>
+    <polygon points="${cx},${yt} ${cx-sD/2},${yV} ${cx+sD/2},${yV}" fill="none" stroke="var(--text3)" stroke-width="1" stroke-dasharray="5 3"/>
+    ${sh3>12?`<text x="${cx}" y="${yt+sh3/2+3}" fill="var(--text3)" font-size="8" text-anchor="middle">VACANT</text>`:''}
+    <rect x="${cx-sD/2}" y="${yV}" width="${sD}" height="${shC}" fill="url(#gCS)" stroke="var(--accent)" stroke-width="1.6" rx="1"/>
+    <rect x="${cx-sD/2}" y="${yV}" width="4" height="${shC}" fill="var(--accent)" opacity=".18"/>
+    <rect x="${cx+sD/2-4}" y="${yV}" width="4" height="${shC}" fill="var(--accent)" opacity=".18"/>
+    ${shC>18?`<text x="${cx}" y="${yV+shC/2+3}" fill="var(--accent2)" font-size="9.5" text-anchor="middle" opacity=".6">CYLINDER</text>`:''}
+    <rect x="${cx-sD/2-rbW}" y="${yCyl-rbH/2}" width="${rbW}" height="${rbH}" fill="var(--purple)" fill-opacity=".3" stroke="var(--purple)" stroke-width="1" rx="2"/>
+    <rect x="${cx+sD/2}" y="${yCyl-rbH/2}" width="${rbW}" height="${rbH}" fill="var(--purple)" fill-opacity=".3" stroke="var(--purple)" stroke-width="1" rx="2"/>
+    <text x="${cx-sD/2-rbW-4}" y="${yCyl+3}" fill="var(--purple)" font-size="7" text-anchor="end">Ring Beam</text>
+    <polygon points="${cx-sD/2},${yCyl} ${cx+sD/2},${yCyl} ${cx+sd/2},${yB} ${cx-sd/2},${yB}" fill="url(#cCS)" stroke="var(--accent)" stroke-width="1.6"/>
+    <line x1="${cx-sD/2}" y1="${yCyl}" x2="${cx-sd/2}" y2="${yB}" stroke="var(--accent)" stroke-width="3" opacity=".12"/>
+    <line x1="${cx+sD/2}" y1="${yCyl}" x2="${cx+sd/2}" y2="${yB}" stroke="var(--accent)" stroke-width="3" opacity=".12"/>
+    ${shCn>18?`<text x="${cx}" y="${yCyl+shCn/2+3}" fill="var(--accent2)" font-size="9.5" text-anchor="middle" opacity=".6">CONE</text>`:''}
+    <line x1="${cx-sd/2}" y1="${yB}" x2="${cx+sd/2}" y2="${yB}" stroke="var(--red)" stroke-width="2"/>
+    <line x1="${cx}" y1="${yt-8}" x2="${cx}" y2="${yB+8}" stroke="var(--text3)" stroke-width=".5" stroke-dasharray="8 4"/>
+    ${extLine(cx+sD/2,yT,dX2+8,yT)}${extLine(cx+sD/2,yV,dX+4,yV)}${extLine(cx+sD/2,yCyl,dX+4,yCyl)}${extLine(cx+sd/2,yB,dX2+8,yB)}
+    ${sh3>8?svgDimV(dX,yT,yV,`h3 = ${F0(h3)}`):''}
+    ${shC>8?svgDimV(dX,yV,yCyl,`hCyl = ${F0(Math.max(hCyl,0))}`):''}
+    ${shCn>8?svgDimV(dX,yCyl,yB,`hCone = ${F0(h_cn)}`):''}
+    ${svgDimV(dX2,yT,yB,`H = ${F0(H)}`)}
+    ${svgDimH(yB+20,cx-sD/2,cx+sD/2,`D = ${F0(D)} mm`)}
+    ${svgAng(cx+sd/2+10,yB-8,`x = ${x0}°`)}
+  </svg>`;
+
+  const adv=advise('silo',D/1000,cap,H/1000);
+  document.getElementById('cs_out').innerHTML=`
+    <div class="duo">
+      <div class="diag-card"><div class="card-h"><span class="card-t">🔧 Live Cross-Section</span><span class="badge">Real-time</span></div><div class="diag-wrap">${svg}</div></div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="card"><div class="card-h"><span class="card-t">📊 Volumes</span></div><div class="mrow">
+          <div class="m hl"><div class="lb">Required Vol</div><div class="vl">${F(vol)}<span class="us">m³</span></div></div>
+          <div class="m"><div class="lb">Cone</div><div class="vl">${F(v_cn)}<span class="us">m³</span></div></div>
+          <div class="m"><div class="lb">Cylinder</div><div class="vl">${F(Math.max(cylV,0))}<span class="us">m³</span></div></div>
+          <div class="m"><div class="lb">Vacant</div><div class="vl">${F(v3)}<span class="us">m³</span></div></div>
+        </div></div>
+        <div class="card"><div class="card-h"><span class="card-t">📏 Heights</span></div><div class="mrow">
+          <div class="m"><div class="lb">Cone</div><div class="vl">${F0(h_cn)}<span class="us">mm</span></div></div>
+          <div class="m"><div class="lb">Cylinder</div><div class="vl">${F0(Math.max(hCyl,0))}<span class="us">mm</span></div></div>
+          <div class="m"><div class="lb">Vacant h3</div><div class="vl">${F0(h3)}<span class="us">mm</span></div></div>
+          <div class="m hl"><div class="lb">Total H</div><div class="vl">${F0(H)}<span class="us">mm</span></div></div>
+        </div></div>
+      </div>
+    </div>
+    <div class="card"><div class="card-h"><span class="card-t">🏗 Structural Advisory</span></div>${aHTML(adv)}</div>`;
+}
+
+// ═══════ FLAT BOTTOM SILO ═══════
+function calcFS(){
+  const cap=V('fs_cap'),den=V('fs_den'),dia=V('fs_dia'),cl=V('fs_cl'),a1=S('fs_a1_s'),a2=S('fs_a2_s');
+  const R=dia/2,vol=cap/den;
+  const h1=R*Math.tan(rad(a2)),h2=R*Math.tan(rad(a1));
+  const v1=(PI*R*R*h1)/3,v2_=(PI*R*R*h2)/3;
+  const capCone=(v1+v2_)*den,rem=vol-v1-v2_;
+  const h3=rem>0?rem/(PI*R*R):0,H=h1+h2+Math.max(h3,0)+cl/1000;
+
+  const W=460,pL=55,pR=110,drawW=W-pL-pR,sc=drawW/dia,hsc=Math.min(sc,320/Math.max(H,1));
+  const sD=dia*sc,sh1=h1*hsc,sh2=h2*hsc,sh3=Math.max(h3,0)*hsc,sCl=(cl/1000)*hsc;
+  const sH=sCl+sh1+sh3+sh2,svgH=sH+90;
+  const cx=pL+sD/2,yt=30;
+  const dX=cx+sD/2+14,dX2=cx+sD/2+60;
+  const y0=yt,y1=yt+sCl,y2=yt+sCl+sh1,y3=yt+sCl+sh1+sh3,y4=yt+sH;
+
+  const svg=`<svg width="${W}" height="${svgH}" viewBox="0 0 ${W} ${svgH}">
+    <defs>
+      <linearGradient id="gFS" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fbbf24" stop-opacity=".05"/><stop offset="100%" stop-color="#fbbf24" stop-opacity=".22"/></linearGradient>
+      <linearGradient id="cFS" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#4478ff" stop-opacity=".04"/><stop offset="100%" stop-color="#4478ff" stop-opacity=".16"/></linearGradient>
+    </defs>
+    <rect x="${cx-sD/2}" y="${y0}" width="${sD}" height="${sCl}" fill="none" stroke="var(--text3)" stroke-width="1" stroke-dasharray="4 3"/>
+    ${sCl>10?`<text x="${cx}" y="${y0+sCl/2+3}" fill="var(--text3)" font-size="7.5" text-anchor="middle">CLEARANCE</text>`:''}
+    <polygon points="${cx},${y1} ${cx-sD/2},${y2} ${cx+sD/2},${y2}" fill="url(#gFS)" stroke="var(--accent)" stroke-width="1.4"/>
+    ${sh1>14?`<text x="${cx}" y="${y1+(y2-y1)*.6}" fill="var(--accent2)" font-size="8.5" text-anchor="middle" opacity=".6">TOP CONE</text>`:''}
+    <rect x="${cx-sD/2}" y="${y2}" width="${sD}" height="${sh3}" fill="url(#gFS)" stroke="var(--accent)" stroke-width="1.6"/>
+    <rect x="${cx-sD/2}" y="${y2}" width="4" height="${sh3}" fill="var(--accent)" opacity=".18"/>
+    <rect x="${cx+sD/2-4}" y="${y2}" width="4" height="${sh3}" fill="var(--accent)" opacity=".18"/>
+    ${sh3>16?`<text x="${cx}" y="${y2+sh3/2+3}" fill="var(--accent2)" font-size="9" text-anchor="middle" opacity=".6">CYLINDER</text>`:''}
+    <polygon points="${cx-sD/2},${y3} ${cx+sD/2},${y3} ${cx},${y4}" fill="url(#cFS)" stroke="var(--accent)" stroke-width="1.6"/>
+    ${sh2>14?`<text x="${cx}" y="${y3+(y4-y3)*.4}" fill="var(--accent2)" font-size="8.5" text-anchor="middle" opacity=".6">BOTTOM CONE</text>`:''}
+    <line x1="${cx}" y1="${yt-6}" x2="${cx}" y2="${y4+6}" stroke="var(--text3)" stroke-width=".5" stroke-dasharray="8 4"/>
+    ${extLine(cx+sD/2,y0,dX2+8,y0)}${extLine(cx+sD/2,y1,dX+4,y1)}${extLine(cx+sD/2,y2,dX+4,y2)}${extLine(cx+sD/2,y3,dX+4,y3)}${extLine(cx,y4,dX2+8,y4)}
+    ${sCl>6?svgDimV(dX,y0,y1,`cl = ${cl}mm`):''}
+    ${sh1>6?svgDimV(dX,y1,y2,`h1 = ${F1(h1)}m`):''}
+    ${sh3>6?svgDimV(dX,y2,y3,`h3 = ${F1(Math.max(h3,0))}m`):''}
+    ${sh2>6?svgDimV(dX,y3,y4,`h2 = ${F1(h2)}m`):''}
+    ${svgDimV(dX2,y0,y4,`H = ${F1(H)}m`)}
+    ${svgDimH(y4+18,cx-sD/2,cx+sD/2,`Dia = ${dia} m`)}
+    ${svgAng(cx+sD/2-32,y2-6,`a2 = ${a2}°`)}
+    ${svgAng(cx-sD/2+6,y3+12,`a1 = ${a1}°`)}
+  </svg>`;
+
+  const adv=advise('silo',dia,cap,H);
+  if(dia>30)adv.push({l:'amber',i:'🔄',t:'Reclaimer Needed',m:`Dia ${dia}m — sweep-arm / reclaimer system required for flat bottom.`});
+  document.getElementById('fs_out').innerHTML=`
+    <div class="duo">
+      <div class="diag-card"><div class="card-h"><span class="card-t">🔧 Live Cross-Section</span><span class="badge">Real-time</span></div><div class="diag-wrap">${svg}</div></div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="card"><div class="card-h"><span class="card-t">📊 Volumes</span></div><div class="mrow">
+          <div class="m hl"><div class="lb">Required Vol</div><div class="vl">${F(vol)}<span class="us">m³</span></div></div>
+          <div class="m"><div class="lb">Top Cone</div><div class="vl">${F(v1)}<span class="us">m³</span></div></div>
+          <div class="m"><div class="lb">Bottom Cone</div><div class="vl">${F(v2_)}<span class="us">m³</span></div></div>
+          <div class="m"><div class="lb">Cone Cap</div><div class="vl">${F0(capCone)}<span class="us">T</span></div></div>
+        </div></div>
+        <div class="card"><div class="card-h"><span class="card-t">📏 Heights</span></div><div class="mrow">
+          <div class="m"><div class="lb">Top Cone h1</div><div class="vl">${F1(h1)}<span class="us">m</span></div></div>
+          <div class="m"><div class="lb">Bottom h2</div><div class="vl">${F1(h2)}<span class="us">m</span></div></div>
+          <div class="m"><div class="lb">Cylinder h3</div><div class="vl">${F1(Math.max(h3,0))}<span class="us">m</span></div></div>
+          <div class="m hl"><div class="lb">Total H</div><div class="vl">${F1(H)}<span class="us">m</span></div></div>
+        </div></div>
+      </div>
+    </div>
+    <div class="card"><div class="card-h"><span class="card-t">🏗 Structural Advisory</span></div>${aHTML(adv)}</div>`;
+}
+
+function go(){calcRH();calcRC();calcCS();calcFS()}
+go();
+</script>
+</body>
+</html>

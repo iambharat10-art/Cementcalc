@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kiln Heat Balance Calculator</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+:root{
+--bg:#04080f;--bg2:#081019;--cd:#0c1524;--cd2:#101e34;
+--bd:#152540;--bd2:#1d3358;
+--am:#f59e0b;--rd:#ef4444;--gn:#10b981;--bl:#3b82f6;--cy:#06b6d4;--pu:#a78bfa;--pk:#ec4899;
+--tx:#a0b4cc;--dm:#3d5575;--bt:#e8f0f8;
+--mo:'JetBrains Mono',monospace;--sn:'Outfit',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font-family:var(--sn);font-size:13px}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:3px}
+.app{max-width:1260px;margin:0 auto;padding:16px 20px}
+header{text-align:center;padding:24px 16px 16px}
+header h1{font-size:26px;font-weight:800;color:var(--bt);letter-spacing:-0.5px}
+header h1 span{color:var(--am)}
+header p{font-size:12px;color:var(--dm);margin-top:4px}
+.tabs{display:flex;justify-content:center;gap:4px;margin:16px 0;flex-wrap:wrap}
+.tabs button{padding:9px 20px;border-radius:7px;border:1.5px solid var(--bd);cursor:pointer;font-size:12px;font-family:var(--sn);font-weight:600;background:var(--cd);color:var(--dm);transition:all .2s}
+.tabs button:hover{border-color:var(--bd2);color:var(--tx)}
+.tabs button.on{background:var(--am);border-color:var(--am);color:#000;font-weight:700}
+.pnl{display:none}.pnl.on{display:block}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media(max-width:860px){.g2,.g3{grid-template-columns:1fr}}
+.c{background:var(--cd);border:1px solid var(--bd);border-radius:10px;padding:18px;margin-bottom:14px}
+.c h2{font-size:15px;font-weight:700;color:var(--bt);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.c h2 i{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.c h2::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--bd2),transparent)}
+.c h3{font-size:12px;font-weight:600;color:var(--bt);margin:12px 0 6px}
+.r{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.r label{font-size:12px;color:var(--tx);width:220px;flex-shrink:0;line-height:1.3}
+.r label small{font-size:9.5px;color:var(--dm);display:block;margin-top:1px}
+input[type=number]{background:var(--bg);border:1.5px solid var(--bd2);border-radius:6px;color:var(--bt);font-family:var(--mo);font-size:13px;padding:7px 10px;width:110px;outline:none;transition:border .2s}
+input[type=number]:focus{border-color:var(--am);box-shadow:0 0 0 3px #f59e0b20}
+.u{font-size:10px;color:var(--dm);min-width:55px}
+.rb{background:var(--cd2);border:1.5px solid var(--bd2);border-radius:9px;padding:14px 18px;margin-top:10px}
+.rr{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--bd)}
+.rr:last-child{border-bottom:none}
+.rr .l{font-size:12px;color:var(--tx)}
+.rr .l small{display:block;font-size:9.5px;color:var(--dm)}
+.rr .v{font-size:15px;font-weight:700;font-family:var(--mo)}
+.rr .v.big{font-size:22px}
+.rr .v u{font-size:10px;color:var(--dm);font-weight:400;text-decoration:none;margin-left:3px}
+.am{color:var(--am)}.rd{color:var(--rd)}.gn{color:var(--gn)}.bl{color:var(--bl)}.cy{color:var(--cy)}.pu{color:var(--pu)}
+.bar{height:8px;background:var(--bd);border-radius:4px;overflow:hidden;margin:3px 0}
+.bar div{height:100%;border-radius:4px;transition:width .4s}
+table.dt{width:100%;border-collapse:collapse;font-size:11.5px}
+table.dt th{text-align:left;padding:7px 5px;font-size:9.5px;color:var(--am);text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid var(--bd2);font-weight:600}
+table.dt th:nth-child(n+2){text-align:right}
+table.dt td{padding:7px 5px;border-bottom:1px solid var(--bd);font-family:var(--mo)}
+table.dt td:nth-child(n+2){text-align:right}
+table.dt td:first-child{font-family:var(--sn);color:var(--bt);font-weight:500}
+table.dt tr:hover td{background:var(--bg2)}
+.info{background:var(--cd2);border-left:3px solid var(--am);border-radius:0 8px 8px 0;padding:11px 14px;margin:10px 0;font-size:12px;line-height:1.6}
+.info b{color:var(--bt)}
+.fm{background:var(--bg);border:1px solid var(--bd2);border-radius:7px;padding:10px 14px;font-family:var(--mo);font-size:11.5px;color:var(--cy);margin:8px 0;line-height:1.7;overflow-x:auto}
+.kpi{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+.kpi>div{flex:1 1 150px;min-width:130px;background:var(--cd);border:1px solid var(--bd);border-radius:9px;padding:12px 14px}
+.kpi .kl{font-size:9px;color:var(--dm);text-transform:uppercase;letter-spacing:.7px;margin-bottom:2px}
+.kpi .kv{font-size:20px;font-weight:700;font-family:var(--mo);line-height:1.1}
+.kpi .kv u{font-size:10px;color:var(--dm);font-weight:400;text-decoration:none;margin-left:2px}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+ <h1>Kiln <span>Heat Balance</span> Calculator</h1>
+ <p>Cement Kiln System - Interactive Heat Input/Output Analysis</p>
+</header>
+
+<div class="tabs" id="tabs"></div>
+<div id="content"></div>
+</div>
+
+<script>
+"use strict";
+// ===== STATE =====
+const S={
+ // Production
+ P:0,        // Clinker production kg/hr
+ // Fuel
+ fMain:0,     // Main burner kg/hr
+ fCalc:0,     // Calciner burner kg/hr
+ Hc:0,           // Fuel heat content kcal/kg fuel
+ fCp:0,         // Fuel specific heat
+ fT:0,            // Fuel temperature C
+ // Raw meal
+ rmRate:0,   // Kiln feed kg/hr
+ rmCp:0,         // Raw meal Cp
+ rmT:0,            // Kiln feed temp C
+ // Ambient
+ Tamb:0,
+ // Clinker chemistry
+ CaCO3:0, MgCO3:0,
+ SiO2_rm:0, Al2O3_rm:0, Fe2O3_rm:0,
+ CaO_ck:0, K2O_ck:0, Na2O_ck:0,
+ S_ck:0, H2O_rm:0, LOI_rm:0,
+ SiO2_ck:0, Al2O3_ck:0, Fe2O3_ck:0,
+ // Preheater exit gas
+ phGasM:0,   // m3/hr
+ phGasCp:0,      // kcal/m3/C
+ phGasT:0,        // C
+ // Bypass
+ bpGasM:0,      // m3/hr
+ bpGasCp:0,
+ bpGasT:0,
+ bpWater:0,      // kg/hr water for cond tower
+ bpDustM:0,      // kg/hr
+ bpDustCp:0,
+ bpDustT:0,
+ // Clinker
+ ckCp:0,
+ ckT:0,           // Clinker outlet temp
+ // Cooler exit gas
+ coolerGasM:0,  // m3/hr
+ coolerGasCp:0,
+ coolerGasT:0,
+ coolerWater:0, // kg/hr
+ // Clinker crusher water
+ crushWaterM:0, // kg/hr
+ crushWaterCp:0,
+ crushWaterTout:0,
+ crushWaterTin:0,
+ // Radiation
+ kilnDia:0, kilnLen:0,
+ coolerDia:0, coolerLen:0,
+ kilnRadTotal:0, // Mcal/hr (from measurements)
+ coolerRadTotal:0,
+ phRadTotal:0,
+ // Evaporation
+ lambda:0, // kcal/kg water
+};
+
+let aTab='overview';
+let C={};
+
+// ===== CALCULATE =====
+function calc(){
+ const s=S, c={};
+ // Derived
+ c.F=s.fMain+s.fCalc; // total fuel
+ c.ckFactor=100/(100-s.LOI_rm);
+
+ // Q1: Combustion heat
+ c.Q1=c.F*s.Hc/s.P;
+
+ // Q2: Raw meal sensible heat
+ c.Q2=s.rmRate*s.rmCp*(s.rmT-s.Tamb)/s.P;
+
+ // Q3: Fuel sensible heat
+ c.Q3=c.F*s.fCp*(s.fT-s.Tamb)/s.P;
+
+ // Q4: Air (assumed T2=T1)
+ c.Q4=0;
+
+ // Q5: Cooling water (assumed T2=T1 for main)
+ c.Q5=0;
+
+ // Total Heat Input
+ c.totalIn=c.Q1+c.Q2+c.Q3+c.Q4+c.Q5;
+
+ // Q6: Clinker formation heat
+ const CaO_calc=s.CaCO3*c.ckFactor*56/100;
+ const MgO_calc=s.MgCO3*c.ckFactor*40.3/84.3;
+ c.Q6=(7.646*CaO_calc)+(6.48*MgO_calc)+(2.22*s.Al2O3_ck)
+     +(11.6*c.ckFactor*s.H2O_rm)-(5.116*s.SiO2_ck)
+     -(0.59*s.Fe2O3_ck)-(10*(s.K2O_ck+s.Na2O_ck))
+     -(32*c.ckFactor*s.S_ck);
+
+ // Q7: Preheater exit gas
+ c.Q7=s.phGasM*s.phGasCp*(s.phGasT-s.Tamb)/s.P;
+
+ // Q8: Bypass exit gas
+ c.Q8=s.bpGasM*s.bpGasCp*(s.bpGasT-s.Tamb)/s.P;
+
+ // Q9: Bypass water evaporation
+ c.Q9=s.bpWater*s.lambda/s.P;
+
+ // Q10: Bypass dust
+ c.Q10=s.bpDustM*s.bpDustCp*(s.bpDustT-s.Tamb)/s.P;
+
+ // Q11: Clinker crusher water
+ c.Q11=s.crushWaterM*s.crushWaterCp*(s.crushWaterTout-s.crushWaterTin)/s.P;
+
+ // Q12: Clinker heat loss
+ c.Q12=s.ckCp*(s.ckT-s.Tamb);
+
+ // Q13: Cooler exit gas
+ c.Q13=s.coolerGasM*s.coolerGasCp*(s.coolerGasT-s.Tamb)/s.P;
+
+ // Q14: Cooler water evaporation
+ c.Q14=s.coolerWater*s.lambda/s.P;
+
+ // Q15-17: Radiation (from measured data, scaled to production)
+ c.Q15=s.kilnRadTotal*24*1.05/(s.P/1000*24);
+ c.Q16=s.coolerRadTotal*24*1.05/(s.P/1000*24);
+ c.Q17=s.phRadTotal*24*1.05/(s.P/1000*24);
+
+ // Total Heat Output
+ c.totalOut=c.Q6+c.Q7+c.Q8+c.Q9+c.Q10+c.Q11+c.Q12+c.Q13+c.Q14+c.Q15+c.Q16+c.Q17;
+
+ // Balance
+ c.diff=c.totalIn-c.totalOut;
+ c.diffPct=c.totalIn>0?c.diff/c.totalIn*100:0;
+
+ // Specific consumption
+ c.specFuel=c.F/(s.P/1000); // kg fuel / ton clinker
+ c.specHeat=c.Q1; // kcal/kg clinker (same as specific heat consumption)
+
+ C=c;
+}
+
+// ===== FORMATTING =====
+const f=(v,d=2)=>typeof v==='number'&&isFinite(v)?v.toFixed(d):'--';
+const fN=v=>typeof v==='number'&&isFinite(v)?v.toLocaleString('en',{maximumFractionDigits:1}):'--';
+const pct=(v,tot)=>tot>0?(v/tot*100).toFixed(1):'--';
+
+// ===== INPUT ROW =====
+function inp(label,key,unit,step=1,desc=''){
+ return `<div class="r"><label>${label}${desc?`<small>${desc}</small>`:''}</label><input type="number" value="${S[key]}" step="${step}" onchange="S['${key}']=parseFloat(this.value)||0;rc()"><span class="u">${unit}</span></div>`;
+}
+
+// ===== TAB RENDERERS =====
+function rOverview(){
+ const c=C;
+ return `
+ <div class="kpi">
+  <div><div class="kl">Specific Heat Consumption</div><div class="kv am">${f(c.Q1,1)}<u>kcal/kg ck</u></div></div>
+  <div><div class="kl">Clinker Production</div><div class="kv bl">${fN(S.P/1000)}<u>t/hr</u></div></div>
+  <div><div class="kl">Fuel Rate</div><div class="kv rd">${fN(c.F)}<u>kg/hr</u></div></div>
+  <div><div class="kl">Specific Fuel</div><div class="kv pu">${f(c.specFuel,1)}<u>kg/t ck</u></div></div>
+  <div><div class="kl">Balance Difference</div><div class="kv ${Math.abs(c.diffPct)<2?'gn':'rd'}">${f(c.diffPct,2)}<u>%</u></div></div>
+  <div><div class="kl">Clinker Factor</div><div class="kv cy">${f(c.ckFactor,3)}<u>kg/kg</u></div></div>
+ </div>
+ <div class="g2">
+  <div class="c"><h2><i style="background:var(--gn)"></i>Heat Input</h2>
+   <table class="dt">
+    <tr><th>Item</th><th>kcal/kg ck</th><th>% of Total</th></tr>
+    <tr><td style="color:var(--am)">Q1 - Combustion Heat of Fuel</td><td style="color:var(--am);font-weight:700">${f(c.Q1)}</td><td>${pct(c.Q1,c.totalIn)}%</td></tr>
+    <tr><td>Q2 - Raw Meal Sensible Heat</td><td>${f(c.Q2)}</td><td>${pct(c.Q2,c.totalIn)}%</td></tr>
+    <tr><td>Q3 - Fuel Sensible Heat</td><td>${f(c.Q3)}</td><td>${pct(c.Q3,c.totalIn)}%</td></tr>
+    <tr><td>Q4 - Air Sensible Heat</td><td>${f(c.Q4)}</td><td>${pct(c.Q4,c.totalIn)}%</td></tr>
+    <tr><td>Q5 - Cooling Water</td><td>${f(c.Q5)}</td><td>${pct(c.Q5,c.totalIn)}%</td></tr>
+    <tr style="border-top:2px solid var(--gn)"><td style="color:var(--gn);font-weight:700">TOTAL INPUT</td><td style="color:var(--gn);font-weight:700;font-size:14px">${f(c.totalIn)}</td><td style="color:var(--gn)">100%</td></tr>
+   </table>
+  </div>
+  <div class="c"><h2><i style="background:var(--rd)"></i>Heat Output</h2>
+   <table class="dt">
+    <tr><th>Item</th><th>kcal/kg ck</th><th>% of Input</th></tr>
+    <tr><td style="color:var(--am)">Q6 - Clinker Formation</td><td style="color:var(--am);font-weight:700">${f(c.Q6)}</td><td>${pct(c.Q6,c.totalIn)}%</td></tr>
+    <tr><td>Q7 - Preheater Exit Gas</td><td>${f(c.Q7)}</td><td>${pct(c.Q7,c.totalIn)}%</td></tr>
+    <tr><td>Q8 - Bypass Gas</td><td>${f(c.Q8)}</td><td>${pct(c.Q8,c.totalIn)}%</td></tr>
+    <tr><td>Q9 - Bypass Water Evaporation</td><td>${f(c.Q9)}</td><td>${pct(c.Q9,c.totalIn)}%</td></tr>
+    <tr><td>Q10 - Bypass Dust</td><td>${f(c.Q10)}</td><td>${pct(c.Q10,c.totalIn)}%</td></tr>
+    <tr><td>Q11 - Clinker Crusher Water</td><td>${f(c.Q11)}</td><td>${pct(c.Q11,c.totalIn)}%</td></tr>
+    <tr><td>Q12 - Clinker Heat Loss</td><td>${f(c.Q12)}</td><td>${pct(c.Q12,c.totalIn)}%</td></tr>
+    <tr><td>Q13 - Cooler Exit Gas</td><td>${f(c.Q13)}</td><td>${pct(c.Q13,c.totalIn)}%</td></tr>
+    <tr><td>Q14 - Cooler Water Evaporation</td><td>${f(c.Q14)}</td><td>${pct(c.Q14,c.totalIn)}%</td></tr>
+    <tr><td>Q15 - Kiln Radiation</td><td>${f(c.Q15)}</td><td>${pct(c.Q15,c.totalIn)}%</td></tr>
+    <tr><td>Q16 - Cooler Radiation</td><td>${f(c.Q16)}</td><td>${pct(c.Q16,c.totalIn)}%</td></tr>
+    <tr><td>Q17 - Preheater Radiation</td><td>${f(c.Q17)}</td><td>${pct(c.Q17,c.totalIn)}%</td></tr>
+    <tr style="border-top:2px solid var(--rd)"><td style="color:var(--rd);font-weight:700">TOTAL OUTPUT</td><td style="color:var(--rd);font-weight:700;font-size:14px">${f(c.totalOut)}</td><td style="color:var(--rd)">${pct(c.totalOut,c.totalIn)}%</td></tr>
+    <tr><td style="color:${Math.abs(c.diffPct)<2?'var(--gn)':'var(--rd)'};font-weight:600">DIFFERENCE</td><td style="color:${Math.abs(c.diffPct)<2?'var(--gn)':'var(--rd)'};font-weight:600">${f(c.diff)}</td><td>${f(c.diffPct)}%</td></tr>
+   </table>
+  </div>
+ </div>
+ <div class="c"><h2><i style="background:var(--pu)"></i>Heat Distribution (% of Total Input)</h2>
+  ${[
+   {n:'Clinker Formation (Q6)',v:c.Q6,cl:'var(--am)'},
+   {n:'Preheater Exit Gas (Q7)',v:c.Q7,cl:'var(--rd)'},
+   {n:'Cooler Water Evaporation (Q14)',v:c.Q14,cl:'var(--cy)'},
+   {n:'Kiln Radiation (Q15)',v:c.Q15,cl:'var(--pu)'},
+   {n:'Clinker Heat Loss (Q12)',v:c.Q12,cl:'var(--bl)'},
+   {n:'Cooler Exit Gas (Q13)',v:c.Q13,cl:'var(--gn)'},
+   {n:'Bypass Gas + Water (Q8+Q9)',v:c.Q8+c.Q9,cl:'var(--pk)'},
+   {n:'Preheater Radiation (Q17)',v:c.Q17,cl:'var(--dm)'},
+  ].map(x=>`<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px"><span>${x.n}</span><span style="color:${x.cl};font-family:var(--mo);font-weight:600">${f(x.v,1)} kcal/kg (${pct(x.v,c.totalIn)}%)</span></div><div class="bar"><div style="width:${Math.min(x.v/c.totalIn*100*2.5,100)}%;background:${x.cl}"></div></div></div>`).join('')}
+ </div>`;
+}
+
+function rInputs(){
+ return `
+ <div class="g2">
+  <div class="c"><h2><i style="background:var(--am)"></i>Production and Fuel</h2>
+   ${inp('Clinker Production','P','kg/hr',100,'Performance test data')}
+   ${inp('Main Burner Fuel','fMain','kg/hr',10,'Measured flow rate')}
+   ${inp('Calciner Fuel','fCalc','kg/hr',10,'Measured flow rate')}
+   ${inp('Fuel Heat Content (Hc)','Hc','kcal/kg f',50,'From fuel analysis')}
+   ${inp('Fuel Specific Heat (Cp)','fCp','kcal/kg/C',0.01)}
+   ${inp('Fuel Temperature','fT','C',1)}
+  </div>
+  <div class="c"><h2><i style="background:var(--gn)"></i>Raw Meal (Kiln Feed)</h2>
+   ${inp('Kiln Feed Rate','rmRate','kg/hr',100,'Measured flow rate')}
+   ${inp('Raw Meal Cp','rmCp','kcal/kg/C',0.01)}
+   ${inp('Kiln Feed Temperature','rmT','C',1,'Thermocouple reading')}
+   ${inp('Ambient Temperature','Tamb','C',1,'Site condition')}
+  </div>
+ </div>
+ <div class="c"><h2><i style="background:var(--cy)"></i>Clinker Chemistry (Raw Mix and Clinker Analysis)</h2>
+  <div class="g3">
+   <div>
+    <h3>Raw Mix (wt%)</h3>
+    ${inp('CaCO3','CaCO3','%',0.1)}
+    ${inp('MgCO3','MgCO3','%',0.01)}
+    ${inp('Combined H2O','H2O_rm','%',0.01)}
+    ${inp('Loss on Ignition','LOI_rm','%',0.1)}
+    ${inp('Sulfur in Clinker','S_ck','%',0.01)}
+   </div>
+   <div>
+    <h3>Clinker (wt%)</h3>
+    ${inp('SiO2','SiO2_ck','%',0.1)}
+    ${inp('Al2O3','Al2O3_ck','%',0.1)}
+    ${inp('Fe2O3','Fe2O3_ck','%',0.01)}
+    ${inp('K2O','K2O_ck','%',0.01)}
+    ${inp('Na2O','Na2O_ck','%',0.01)}
+   </div>
+   <div>
+    <div class="rb">
+     <div class="rr"><span class="l">Clinker Factor</span><span class="v am">${f(C.ckFactor,3)}<u>kg/kg</u></span></div>
+     <div class="rr"><span class="l">Q6 - Formation Heat</span><span class="v big am">${f(C.Q6,1)}<u>kcal/kg ck</u></span></div>
+    </div>
+    <div class="fm" style="margin-top:12px">
+     Q6 = 7.646*CaO + 6.48*MgO<br>
+     + 2.22*Al2O3 + 11.6*F*H2O<br>
+     - 5.116*SiO2 - 0.59*Fe2O3<br>
+     - 10*(K2O+Na2O) - 32*F*S<br><br>
+     Clinker Factor = 100/(100-LOI)
+    </div>
+   </div>
+  </div>
+ </div>`;
+}
+
+function rLosses(){
+ return `
+ <div class="g2">
+  <div class="c"><h2><i style="background:var(--rd)"></i>Preheater Exit Gas (Q7)</h2>
+   ${inp('Gas Volume','phGasM','m3/hr',500,'From calculation or measurement')}
+   ${inp('Gas Cp','phGasCp','kcal/m3/C',0.01)}
+   ${inp('Gas Temperature','phGasT','C',5,'Thermocouple at PH outlet')}
+   <div class="rb">
+    <div class="rr"><span class="l">Q7 - Preheater Exit Gas Loss</span><span class="v big rd">${f(C.Q7,1)}<u>kcal/kg ck</u></span></div>
+    <div class="rr"><span class="l">% of Total Input</span><span class="v rd">${pct(C.Q7,C.totalIn)}%</span></div>
+   </div>
+  </div>
+  <div class="c"><h2><i style="background:var(--pu)"></i>Bypass System (Q8 + Q9 + Q10)</h2>
+   <h3>Bypass Gas (Q8)</h3>
+   ${inp('Bypass Gas Volume','bpGasM','m3/hr',500,'Pitot measurement')}
+   ${inp('Bypass Gas Cp','bpGasCp','kcal/m3/C',0.01)}
+   ${inp('Bypass Gas Temperature','bpGasT','C',5)}
+   <h3>Bypass Cond. Tower Water (Q9)</h3>
+   ${inp('Water Flow Rate','bpWater','kg/hr',100)}
+   <h3>Bypass Dust (Q10)</h3>
+   ${inp('Dust Flow Rate','bpDustM','kg/hr',50,'Weighing test')}
+   ${inp('Dust Cp','bpDustCp','kcal/kg/C',0.01)}
+   ${inp('Dust Temperature','bpDustT','C',5)}
+   <div class="rb">
+    <div class="rr"><span class="l">Q8 - Bypass Gas</span><span class="v pu">${f(C.Q8,2)}<u>kcal/kg ck</u></span></div>
+    <div class="rr"><span class="l">Q9 - Bypass Water Evaporation</span><span class="v pu">${f(C.Q9,2)}<u>kcal/kg ck</u></span></div>
+    <div class="rr"><span class="l">Q10 - Bypass Dust</span><span class="v pu">${f(C.Q10,2)}<u>kcal/kg ck</u></span></div>
+    <div class="rr"><span class="l">Total Bypass Loss</span><span class="v big pu">${f(C.Q8+C.Q9+C.Q10,1)}<u>kcal/kg ck</u></span></div>
+   </div>
+  </div>
+ </div>
+ <div class="g2">
+  <div class="c"><h2><i style="background:var(--bl)"></i>Clinker Losses (Q11 + Q12)</h2>
+   <h3>Clinker Crusher Water (Q11)</h3>
+   ${inp('Water Flow Rate','crushWaterM','kg/hr',500)}
+   ${inp('Water Cp','crushWaterCp','kcal/kg/C',0.01)}
+   ${inp('Water Outlet Temp','crushWaterTout','C',1)}
+   ${inp('Water Inlet Temp','crushWaterTin','C',1)}
+   <h3>Clinker Heat Loss (Q12)</h3>
+   ${inp('Clinker Cp','ckCp','kcal/kg/C',0.01)}
+   ${inp('Clinker Outlet Temperature','ckT','C',5,'Hand thermocouple')}
+   <div class="rb">
+    <div class="rr"><span class="l">Q11 - Crusher Water</span><span class="v bl">${f(C.Q11,2)}<u>kcal/kg ck</u></span></div>
+    <div class="rr"><span class="l">Q12 - Clinker</span><span class="v bl">${f(C.Q12,2)}<u>kcal/kg ck</u></span></div>
+   </div>
+  </div>
+  <div class="c"><h2><i style="background:var(--cy)"></i>Cooler Losses (Q13 + Q14)</h2>
+   <h3>Cooler Exit Gas (Q13)</h3>
+   ${inp('Gas Volume','coolerGasM','m3/hr',500,'Pitot measurement')}
+   ${inp('Gas Cp','coolerGasCp','kcal/m3/C',0.01)}
+   ${inp('Gas Temperature','coolerGasT','C',5)}
+   <h3>Cooler Water Evaporation (Q14)</h3>
+   ${inp('Water Flow Rate','coolerWater','kg/hr',500,'Site flowmeter')}
+   <div class="rb">
+    <div class="rr"><span class="l">Q13 - Cooler Exit Gas</span><span class="v cy">${f(C.Q13,2)}<u>kcal/kg ck</u></span></div>
+    <div class="rr"><span class="l">Q14 - Cooler Water Evap</span><span class="v cy">${f(C.Q14,2)}<u>kcal/kg ck</u></span></div>
+    <div class="rr"><span class="l">Total Cooler Loss</span><span class="v big cy">${f(C.Q13+C.Q14,1)}<u>kcal/kg ck</u></span></div>
+   </div>
+  </div>
+ </div>
+ <div class="c"><h2><i style="background:var(--pk)"></i>Radiation Losses (Q15 + Q16 + Q17)</h2>
+  <div class="g3">
+   <div>
+    <h3>Kiln (Q15)</h3>
+    ${inp('Kiln Diameter','kilnDia','m',0.1)}
+    ${inp('Kiln Length','kilnLen','m',1)}
+    ${inp('Total Radiation','kilnRadTotal','Mcal/hr',10,'From shell scanner data')}
+    <div class="rb"><div class="rr"><span class="l">Q15</span><span class="v pk">${f(C.Q15,2)}<u>kcal/kg ck</u></span></div></div>
+   </div>
+   <div>
+    <h3>Cooler (Q16)</h3>
+    ${inp('Cooler Diameter','coolerDia','m',0.1)}
+    ${inp('Cooler Length','coolerLen','m',0.5)}
+    ${inp('Total Radiation','coolerRadTotal','Mcal/hr',5)}
+    <div class="rb"><div class="rr"><span class="l">Q16</span><span class="v pk">${f(C.Q16,2)}<u>kcal/kg ck</u></span></div></div>
+   </div>
+   <div>
+    <h3>Preheater (Q17)</h3>
+    ${inp('Total Radiation','phRadTotal','Mcal/hr',10,'Sum of all cyclone surfaces')}
+    <div class="rb"><div class="rr"><span class="l">Q17</span><span class="v pk">${f(C.Q17,2)}<u>kcal/kg ck</u></span></div></div>
+    <div class="rb" style="margin-top:8px"><div class="rr"><span class="l">Total Radiation</span><span class="v big pk">${f(C.Q15+C.Q16+C.Q17,1)}<u>kcal/kg ck</u></span></div></div>
+   </div>
+  </div>
+ </div>`;
+}
+
+function rGuide(){
+ return `<div style="max-width:880px;margin:0 auto">
+ <div class="c">
+ <h2><i style="background:var(--am)"></i>What Is a Kiln Heat Balance?</h2>
+ <p style="line-height:1.7;margin:8px 0">A cement kiln is like a giant oven that cooks raw limestone and clay at 1450 degrees Celsius to make clinker (the main ingredient of cement). A <b style="color:var(--bt)">heat balance</b> tracks every single calorie of energy that goes INTO the kiln system and every calorie that comes OUT.</p>
+ <p style="line-height:1.7;margin:8px 0">The fundamental law: <b style="color:var(--am)">Total Heat In = Total Heat Out</b>. If these don't match closely (within 1-2%), something is wrong with the measurements or there's an unknown heat loss.</p>
+ <p style="line-height:1.7;margin:8px 0">This is the single most important calculation for a cement plant engineer. It tells you exactly where your energy goes and where you can save fuel.</p>
+
+ <h2 style="margin-top:24px"><i style="background:var(--gn)"></i>Heat Inputs (Energy Going In)</h2>
+
+ <h3 style="color:var(--am);margin-top:16px">Q1 - Combustion Heat of Fuel (the biggest input, ~98%)</h3>
+ <p style="line-height:1.7;margin:6px 0">This is the chemical energy released when fuel burns. It is by far the largest heat input.</p>
+ <div class="fm">Q1 = F x Hc / P<br><br>F = Total fuel rate (main burner + calciner) in kg/hr<br>Hc = Fuel heat content in kcal/kg fuel (from lab analysis)<br>P = Clinker production in kg/hr</div>
+ <div class="info"><b>Engineer's insight:</b> If Q1 is too high compared to the theoretical minimum (~400 kcal/kg for clinker formation), you have excessive heat losses somewhere. Target specific heat consumption: 700-750 kcal/kg ck for modern 5-stage preheater kilns.</div>
+
+ <h3 style="color:var(--gn);margin-top:16px">Q2 - Raw Meal Sensible Heat (~1.5%)</h3>
+ <p style="line-height:1.7;margin:6px 0">The raw meal enters at slightly above ambient temperature. This small heat contribution comes from the raw material itself.</p>
+ <div class="fm">Q2 = M x Cp x (T2 - T1) / P<br><br>M = Kiln feed rate (kg/hr), Cp = 0.22 kcal/kg/C<br>T2 = Feed temperature, T1 = Ambient temperature</div>
+
+ <h3 style="color:var(--gn);margin-top:16px">Q3 - Fuel Sensible Heat (~0.4%)</h3>
+ <p style="line-height:1.7;margin:6px 0">If fuel is preheated (e.g., coal dried at 115 degrees C), it carries a small amount of sensible heat.</p>
+
+ <h2 style="margin-top:24px"><i style="background:var(--rd)"></i>Heat Outputs (Where Energy Goes)</h2>
+
+ <h3 style="color:var(--am);margin-top:16px">Q6 - Clinker Formation Heat (~33% - this is the useful heat!)</h3>
+ <p style="line-height:1.7;margin:6px 0">This is the <b style="color:var(--bt)">only useful heat output</b> - the energy needed to break down limestone (CaCO3) and form clinker minerals (C3S, C2S, C3A, C4AF). It depends entirely on the chemical composition of your raw mix.</p>
+ <div class="fm">Q6 = 7.646*CaO + 6.48*MgO + 2.22*Al2O3<br>
+ + 11.6*CkFactor*H2O - 5.116*SiO2<br>
+ - 0.59*Fe2O3 - 10*(K2O+Na2O) - 32*CkFactor*S</div>
+ <div class="info"><b>Why this matters:</b> This is the theoretical minimum heat you MUST supply. Everything above this is heat loss. Typical value: 400-440 kcal/kg ck. Higher CaO (higher LSF) means higher formation heat.</div>
+
+ <h3 style="color:var(--rd);margin-top:16px">Q7 - Preheater Exit Gas (~21% - the biggest controllable loss)</h3>
+ <p style="line-height:1.7;margin:6px 0">Hot gas leaving the preheater tower carries a lot of energy. Lower exit temperature = less waste. But too low causes condensation and buildup problems.</p>
+ <div class="info"><b>Try this:</b> Change the preheater exit gas temperature from 440 to 340 degrees C and watch Q7 drop dramatically. This is why adding more preheater stages (5-stage vs 4-stage) saves fuel - each stage recovers more heat from the gas.</div>
+
+ <h3 style="color:var(--cy);margin-top:16px">Q14 - Cooler Water Evaporation (~19%)</h3>
+ <p style="line-height:1.7;margin:6px 0">Water sprayed on hot clinker in the cooler evaporates and carries away heat. This is a huge loss that many plants overlook.</p>
+ <div class="info"><b>Engineer's tip:</b> Reducing cooler water by 5000 kg/hr saves about 70 kcal/kg ck. But too little water means clinker too hot for transport. It is a balancing act.</div>
+
+ <h3 style="color:var(--pu);margin-top:16px">Q15-Q17 - Radiation Losses (~8%)</h3>
+ <p style="line-height:1.7;margin:6px 0">The kiln shell, cooler, and preheater all radiate heat to the surroundings. Kiln radiation (Q15) is the largest because the shell reaches 200-360 degrees C. Hot spots indicate thin refractory lining that needs repair.</p>
+
+ <h2 style="margin-top:24px"><i style="background:var(--bl)"></i>How to Use This Dashboard</h2>
+ <ul style="line-height:2;margin:8px 0;padding-left:18px">
+  <li><b>Overview tab:</b> See the complete balance at a glance with bar charts showing where heat goes</li>
+  <li><b>Inputs tab:</b> Modify fuel rates, feed rates, temperatures, and clinker chemistry</li>
+  <li><b>Losses tab:</b> Modify every heat loss parameter individually and see instant impact</li>
+  <li><b>Every input updates ALL calculations instantly</b> - no need to press a button</li>
+ </ul>
+
+ <h3 style="color:var(--am);margin-top:16px">Best Experiments for Engineers:</h3>
+ <ol style="line-height:2;margin:8px 0;padding-left:18px">
+  <li><b>Reduce preheater exit gas temp</b> from 440 to 350 degrees C - see ~75 kcal/kg savings</li>
+  <li><b>Reduce clinker outlet temp</b> from 285 to 100 degrees C - better cooler efficiency saves ~44 kcal/kg</li>
+  <li><b>Reduce bypass water</b> from 3700 to 0 kg/hr - saves 52 kcal/kg (but only if bypass is off)</li>
+  <li><b>Reduce cooler water</b> from 17500 to 10000 kg/hr - saves ~106 kcal/kg</li>
+  <li><b>Change fuel CV</b> from 9500 to 6000 kcal/kg (switching from petcoke to coal) - see how fuel rate must increase</li>
+  <li><b>Change LSF</b> by increasing CaCO3 from 80 to 84% - watch Q6 formation heat rise</li>
+ </ol>
+
+ <div class="info" style="border-color:var(--gn)"><b>Rule of thumb:</b> For every 100 degrees C reduction in preheater exit gas temperature, you save approximately 60-80 kcal/kg ck. For every 100 degrees C reduction in clinker cooler outlet temperature, you save approximately 24 kcal/kg ck.</div>
+ </div></div>`;
+}
+
+// ===== RENDER =====
+const tabDefs=[
+ {id:'overview',label:'Overview'},
+ {id:'inputs',label:'Inputs & Chemistry'},
+ {id:'losses',label:'Heat Losses'},
+ {id:'guide',label:'Guide'}
+];
+
+function renderTabs(){
+ document.getElementById('tabs').innerHTML=tabDefs.map(t=>
+  `<button class="${aTab===t.id?'on':''}" onclick="aTab='${t.id}';render()">${t.label}</button>`
+ ).join('');
+}
+
+function render(){
+ renderTabs();
+ const el=document.getElementById('content');
+ if(aTab==='overview') el.innerHTML=rOverview();
+ else if(aTab==='inputs') el.innerHTML=rInputs();
+ else if(aTab==='losses') el.innerHTML=rLosses();
+ else if(aTab==='guide') el.innerHTML=rGuide();
+}
+
+function rc(){calc();render()}
+calc();render();
+</script>
+</body>
+</html>
