@@ -134,19 +134,7 @@ DASHBOARDS = [
         "restricted": False,
         "color": "#e88b2e",
         "keywords": "stockpile volume calculator, limestone stockpile, conical pile, longitudinal stockpile, material storage",
-    },
-    {
-        "id": "vrm-heat-balance",
-        "title": "VRM Heat & Mass Balance",
-        "subtitle": "Vertical Roller Mill Analysis",
-        "description": "Complete VRM heat and mass balance for raw mill, coal mill, and cement mill with drying capacity analysis.",
-        "file": "vrm_heat_balance.html",
-        "icon": "🌀",
-        "category": "Grinding",
-        "restricted": False,
-        "color": "#10b981",
-        "keywords": "VRM heat balance, vertical roller mill, mass balance, drying capacity, raw mill heat balance",
-    },
+    },   
 ]
 
 # ═══════════════════════════════════════════════════════════════
