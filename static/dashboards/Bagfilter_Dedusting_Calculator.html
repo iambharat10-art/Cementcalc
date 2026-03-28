@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bagfilter & Dedusting Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b0e14;--bg2:#111620;--bg3:#171d2a;--bg4:#1d2536;--border:#252e42;--border2:#2f3b55;--text:#e8ecf4;--text2:#9aa2c0;--text3:#6b7394;--accent:#06b6d4;--accent2:#22d3ee;--accentDim:rgba(6,182,212,0.1);--green:#22c55e;--greenDim:rgba(34,197,94,0.1);--greenBd:rgba(34,197,94,0.25);--red:#ef4444;--redDim:rgba(239,68,68,0.1);--amber:#f59e0b;--amberDim:rgba(245,158,11,0.1)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;line-height:1.6;min-height:100vh}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+.hdr{background:rgba(11,14,20,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100}
+.hdr-icon{width:42px;height:42px;background:linear-gradient(135deg,var(--accent),#0891b2);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px}
+.hdr h1{font-size:18px;font-weight:700}.hdr p{font-size:11px;color:var(--text3);margin-top:1px}
+.tabs{display:flex;gap:2px;padding:8px 28px;background:var(--bg2);border-bottom:1px solid var(--border);overflow-x:auto;position:sticky;top:70px;z-index:90}
+.tab{padding:8px 18px;border-radius:7px;font-size:12.5px;font-weight:500;color:var(--text3);cursor:pointer;white-space:nowrap;transition:all 0.2s;border:1px solid transparent}
+.tab:hover{color:var(--text2);background:var(--bg3)}.tab.active{color:var(--accent2);background:var(--accentDim);border-color:rgba(6,182,212,0.2)}
+.main{max-width:1500px;margin:0 auto;padding:24px 28px}
+.panel{display:none}.panel.active{display:block}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px}
+.card-t{font-size:14px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.card-t::before{content:'';width:3px;height:16px;background:var(--accent);border-radius:2px}
+.inp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.fld{margin-bottom:12px}.fld label{display:flex;justify-content:space-between;font-size:11px;font-weight:500;color:var(--text2);margin-bottom:5px}
+.fld .u{font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--text3);background:var(--bg3);padding:1px 5px;border-radius:3px}
+.fld input,.fld select{width:100%;padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:13px;outline:none}
+.fld input:focus,.fld select:focus{border-color:var(--accent)}
+.fld select{font-family:'DM Sans',sans-serif}
+.res-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-bottom:16px}
+.m{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px}
+.m .lb{font-size:10px;font-weight:500;color:var(--text2);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.4px}
+.m .vl{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:600;color:var(--accent2)}
+.m .vl .us{font-size:11px;font-weight:400;color:var(--text3);margin-left:3px}
+.m.hl{border-color:rgba(6,182,212,0.3);background:var(--accentDim)}
+.m.ok{border-color:var(--greenBd);background:var(--greenDim)}.m.ok .vl{color:var(--green)}
+.vent-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:10px;transition:border-color 0.2s}
+.vent-card:hover{border-color:var(--border2)}
+.vent-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.vent-num{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:var(--accent2);background:var(--accentDim);border:1px solid rgba(6,182,212,0.2);padding:3px 10px;border-radius:6px}
+.vent-vol{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;color:var(--green)}
+.btn-del{background:var(--redDim);border:1px solid rgba(239,68,68,0.25);color:var(--red);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:inherit}
+.btn-add{background:var(--accentDim);border:1px dashed rgba(6,182,212,0.3);color:var(--accent2);border-radius:8px;padding:10px 18px;font-size:13px;cursor:pointer;font-family:inherit;font-weight:500;width:100%;text-align:center;margin-top:8px}
+table.dt{width:100%;border-collapse:collapse;font-size:13px}
+table.dt th{text-align:left;padding:8px 10px;font-size:10px;color:var(--accent2);text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid var(--border2);background:var(--bg3);white-space:nowrap}
+table.dt td{padding:7px 10px;border-bottom:1px solid var(--border)}
+.warn{background:var(--amberDim);border:1px solid rgba(245,158,11,0.3);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--amber);margin-top:10px}
+.sum-bar{display:flex;gap:8px;padding:12px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+.sum-item{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text2)}.sum-item strong{color:var(--text)}
+.sum-sep{width:1px;height:20px;background:var(--border);margin:0 4px}
+/* Nm3 converter */
+.conv-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:start}
+.conv-arrow{display:flex;align-items:center;justify-content:center;padding-top:40px;font-size:24px;color:var(--accent2)}
+@media(max-width:900px){.main{padding:12px 14px}.hdr{flex-wrap:wrap;padding:10px 14px}.inp-grid{grid-template-columns:1fr}.res-grid{grid-template-columns:repeat(2,1fr)}.conv-grid{grid-template-columns:1fr}table.dt{display:block;overflow-x:auto}}
+@media(max-width:600px){.res-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="hdr">
+<div class="hdr-icon">🌬️</div>
+<div><h1>Bagfilter & Dedusting Calculator</h1><p>Nuisance Filter Sizing — Up to 6 Venting Points</p></div>
+</div>
+<div class="tabs">
+<div class="tab active" data-t="vent">Venting Points</div>
+<div class="tab" data-t="config">Filter Config</div>
+<div class="tab" data-t="pipe">Pipe Sizing</div>
+<div class="tab" data-t="results">Results</div>
+<div class="tab" data-t="nm3">Nm³ ↔ m³ Converter</div>
+</div>
+<div class="main">
+
+<!-- VENTING POINTS -->
+<div class="panel active" id="p-vent">
+<div class="sum-bar" id="ventSum"></div>
+<div id="ventCards"></div>
+<button class="btn-add" id="addVentBtn" onclick="addVent()">+ Add Venting Point (max 6)</button>
+</div>
+
+<!-- FILTER CONFIG -->
+<div class="panel" id="p-config">
+<div class="card">
+<div class="card-t">Bagfilter Parameters</div>
+<div class="inp-grid">
+<div class="fld"><label>Air to Cloth Ratio <span class="u">m³/min/m²</span></label><input type="number" id="acr" value="1.2" step="0.1" oninput="calc()"></div>
+<div class="fld"><label>Bag Diameter <span class="u">mm</span></label><input type="number" id="bagDia" value="160" oninput="calc()"></div>
+<div class="fld"><label>Bag Length <span class="u">mm</span></label><input type="number" id="bagLen" value="4500" oninput="calc()"></div>
+<div class="fld"><label>Total Pressure Drop <span class="u">mmWC</span></label><input type="number" id="dp" value="300" oninput="calc()"></div>
+<div class="fld"><label>Fan Efficiency</label><input type="number" id="fanEff" value="0.8" step="0.05" oninput="calc()"></div>
+<div class="fld"><label>Operating Temperature <span class="u">°C</span></label><input type="number" id="opTemp" value="70" oninput="calc()"></div>
+<div class="fld"><label>Fan Volume Margin <span class="u">%</span></label><input type="number" id="fanMargin" value="15" oninput="calc()"></div>
+</div>
+</div>
+</div>
+
+<!-- PIPE SIZING -->
+<div class="panel" id="p-pipe">
+<div class="card">
+<div class="card-t">Duct/Pipe Sizing for Each Venting Point</div>
+<div style="overflow-x:auto"><table class="dt" id="pipeTable"></table></div>
+</div>
+<div class="card">
+<div class="card-t">Velocity Guidelines</div>
+<div class="res-grid">
+<div class="m"><div class="lb">Low Abrasion</div><div class="vl">20<span class="us">m/s</span></div></div>
+<div class="m"><div class="lb">High Abrasion</div><div class="vl">10<span class="us">m/s</span></div></div>
+<div class="m"><div class="lb">Coal (Explosion)</div><div class="vl">20<span class="us">m/s</span></div></div>
+</div>
+</div>
+</div>
+
+<!-- RESULTS -->
+<div class="panel" id="p-results">
+<div class="card">
+<div class="card-t">Bagfilter & Fan Sizing Results</div>
+<div class="res-grid" id="resGrid"></div>
+</div>
+<div class="card">
+<div class="card-t">Standard Motor Selection</div>
+<div class="res-grid" id="motorGrid"></div>
+</div>
+<div class="card">
+<div class="card-t">Venting Point Summary</div>
+<div style="overflow-x:auto"><table class="dt" id="ventSumTable"></table></div>
+</div>
+</div>
+
+<!-- Nm3 CONVERTER -->
+<div class="panel" id="p-nm3">
+<div class="card">
+<div class="card-t">Nm³ ↔ m³ Volume Converter</div>
+<p style="font-size:12px;color:var(--text3);margin-bottom:16px">Nm³ = volume at 0°C and 101.325 kPa. m³ = actual volume at site conditions.</p>
+<div class="conv-grid">
+<div>
+<h3 style="font-size:13px;font-weight:600;color:var(--accent2);margin-bottom:12px">Nm³ → m³</h3>
+<div class="fld"><label>Volume <span class="u">Nm³</span></label><input type="number" id="cv_nm3" value="100" oninput="calcConv()"></div>
+<div class="fld"><label>Site Elevation <span class="u">m</span></label><input type="number" id="cv_elev" value="250" oninput="calcConv()"></div>
+<div class="fld"><label>Design Temperature <span class="u">°C</span></label><input type="number" id="cv_temp" value="25" oninput="calcConv()"></div>
+<div class="m hl" style="margin-top:12px"><div class="lb">Result (m³)</div><div class="vl" id="cv_m3res">—</div></div>
+</div>
+<div class="conv-arrow">⇆</div>
+<div>
+<h3 style="font-size:13px;font-weight:600;color:var(--accent2);margin-bottom:12px">m³ → Nm³</h3>
+<div class="fld"><label>Volume <span class="u">m³</span></label><input type="number" id="cv_m3" value="150" oninput="calcConvR()"></div>
+<div class="fld"><label>Site Elevation <span class="u">m</span></label><input type="number" id="cv_elev2" value="250" oninput="calcConvR()"></div>
+<div class="fld"><label>Actual Temperature <span class="u">°C</span></label><input type="number" id="cv_temp2" value="40" oninput="calcConvR()"></div>
+<div class="m hl" style="margin-top:12px"><div class="lb">Result (Nm³)</div><div class="vl" id="cv_nm3res">—</div></div>
+</div>
+</div>
+</div>
+</div>
+
+</div>
+
+<script>
+// Tabs
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.t===t.dataset.t));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active',p.id==='p-'+t.dataset.t));
+}));
+
+const gv=id=>+(document.getElementById(id)?.value)||0;
+const f0=v=>typeof v==='number'&&isFinite(v)?Math.round(v).toLocaleString():'—';
+const f1=v=>typeof v==='number'&&isFinite(v)?v.toFixed(1):'—';
+const f2=v=>typeof v==='number'&&isFinite(v)?v.toFixed(2):'—';
+
+// Equipment types and their dedusting volume formulas
+const EQUIP_TYPES=[
+  {id:'bc_feed',name:'Belt Conveyor - Feed',input:'width',unit:'mm',sizes:[650,800,1000,1200,1400,1600,1800,2000],vols:[2250,2750,3500,4250,4750,5500,6000,6750]},
+  {id:'bc_disc',name:'Belt Conveyor - Discharge',input:'width',unit:'mm',sizes:[650,800,1000,1200,1400,1600,1800,2000],vols:[2000,2500,3000,3500,4000,4500,5000,5500]},
+  {id:'be_chain',name:'Bucket Elevator - Chain Discharge',input:'size',unit:'mm',sizes:[400,500,630,800,1000,1250,1600],vols:[1250,1500,2000,2500,3000,3500,4000]},
+  {id:'be_belt',name:'Bucket Elevator - Belt Discharge',input:'size',unit:'mm',sizes:[400,500,630,800,1000,1250,1600],vols:[2000,2250,2500,3000,3500,4500,6000]},
+  {id:'pan_feed',name:'Pan Conveyor - Feed',input:'width',unit:'mm',sizes:[800,1000,1200,1400,1600],vols:[2500,3000,3500,4000,0]},
+  {id:'pan_disc',name:'Pan Conveyor - Discharge',input:'width',unit:'mm',sizes:[800,1000,1200,1400,1600],vols:[9000,10000,11000,12000,0]},
+  {id:'apron_feed',name:'Apron Conveyor - Feed',input:'width',unit:'mm',sizes:[800,1000,1200,1400,1600],vols:[3000,3500,4250,4750,5500]},
+  {id:'crusher',name:'EV/Hammer Crusher',input:'tph',unit:'TPH',volPerTPH:50},
+  {id:'ring_gran',name:'Ring Granulator',input:'tph',unit:'TPH',volPerTPH:35},
+  {id:'roll_sizer',name:'Double Roll Sizer',input:'tph',unit:'TPH',volPerTPH:20},
+  {id:'screw_conv',name:'Screw/Chain Conveyor',input:'dia_len',unit:'mm',sizes:[200,250,315,400,500,630,800,1000],volsPer10m:[500,500,500,750,750,1000,1000,1250]},
+  {id:'vibscreen',name:'Vibrating Screen',input:'custom',unit:'m³/h'},
+  {id:'airslide',name:'Airslide',input:'airslide',unit:'mm'},
+  {id:'silo_air',name:'Airtight Clinker Silo',input:'silo_dia',unit:'m'},
+  {id:'silo_nonair',name:'Non-Airtight Clinker Silo',input:'silo_dia_na',unit:'m'},
+  {id:'custom',name:'Custom (Manual Entry)',input:'manual',unit:'m³/h'},
+];
+
+// Non-airtight silo reference data
+const NA_SILO={dias:[20,25,30,35,40,45,50,60,70,80],vols:[13800,17580,27600,27600,31080,34740,38580,48360,54480,62580]};
+
+// Standard motor sizes
+const MOTORS=[0,5.5,7.5,9.3,11,15,18.5,22,30,37,45,55,75,90,110,132,150,160,180,200,225,250,275,315,350];
+
+// Pipe sizes (low abrasion)
+const PIPES_LOW=[1250,1120,1060,1000,900,800,710,630,560,315,280,250,224,219.1,193.7,168.3,139.7];
+const PIPES_HIGH=[1250,1120,1060,1000,900,800,710,630,560,315,280,250,224,219.1,193.7,168.3,139.7];
+
+// State
+let vents=[];
+
+function addVent(){
+  if(vents.length>=6)return;
+  vents.push({type:'bc_feed',size:0,volume:0,pipeApp:'low',pipeLen:20,tph:0,asWidth:0,asLen:10,asACR:2.4,asTm:80,asTa:15,siloDia:0,customVol:0,screenVol:0});
+  renderVents();
+}
+
+function removeVent(i){
+  vents.splice(i,1);
+  renderVents();
+}
+
+function renderVents(){
+  const el=document.getElementById('ventCards');
+  document.getElementById('addVentBtn').style.display=vents.length>=6?'none':'block';
+
+  el.innerHTML=vents.map((v,i)=>{
+    const eq=EQUIP_TYPES.find(e=>e.id===v.type);
+    let inputHTML='';
+
+    if(eq.input==='width'||eq.input==='size'){
+      const opts=eq.sizes.map(s=>`<option value="${s}" ${v.size===s?'selected':''}>${s} ${eq.unit}</option>`).join('');
+      inputHTML=`<div class="fld"><label>Size <span class="u">${eq.unit}</span></label><select onchange="vents[${i}].size=+this.value;calcVentVol(${i});calc()" style="width:100%;padding:8px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px"><option value="0">Select...</option>${opts}</select></div>`;
+    } else if(eq.input==='tph'){
+      inputHTML=`<div class="fld"><label>Capacity <span class="u">TPH</span></label><input type="number" value="${v.tph}" oninput="vents[${i}].tph=+this.value;calcVentVol(${i});calc()"></div>`;
+    } else if(eq.input==='dia_len'){
+      const opts=eq.sizes.map(s=>`<option value="${s}" ${v.size===s?'selected':''}>${s} mm</option>`).join('');
+      inputHTML=`<div class="fld"><label>Diameter <span class="u">mm</span></label><select onchange="vents[${i}].size=+this.value;calcVentVol(${i});calc()" style="width:100%;padding:8px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px"><option value="0">Select...</option>${opts}</select></div>
+      <div class="fld"><label>Length <span class="u">m</span></label><input type="number" value="${v.asLen}" step="0.1" oninput="vents[${i}].asLen=+this.value;calcVentVol(${i});calc()"></div>`;
+    } else if(eq.input==='airslide'){
+      inputHTML=`<div class="fld"><label>Width <span class="u">mm</span></label><input type="number" value="${v.asWidth}" oninput="vents[${i}].asWidth=+this.value;calcVentVol(${i});calc()"></div>
+      <div class="fld"><label>Length <span class="u">m</span></label><input type="number" value="${v.asLen}" step="0.1" oninput="vents[${i}].asLen=+this.value;calcVentVol(${i});calc()"></div>
+      <div class="fld"><label>Air Requirement <span class="u">m³/min/m²</span></label><input type="number" value="${v.asACR}" step="0.1" oninput="vents[${i}].asACR=+this.value;calcVentVol(${i});calc()"></div>
+      <div class="fld"><label>Material Temp <span class="u">°C</span></label><input type="number" value="${v.asTm}" oninput="vents[${i}].asTm=+this.value;calcVentVol(${i});calc()"></div>
+      <div class="fld"><label>Ambient Temp <span class="u">°C</span></label><input type="number" value="${v.asTa}" oninput="vents[${i}].asTa=+this.value;calcVentVol(${i});calc()"></div>`;
+    } else if(eq.input==='silo_dia'){
+      inputHTML=`<div class="fld"><label>Silo Diameter <span class="u">m</span></label><input type="number" value="${v.siloDia}" step="0.5" oninput="vents[${i}].siloDia=+this.value;calcVentVol(${i});calc()"></div>`;
+    } else if(eq.input==='silo_dia_na'){
+      inputHTML=`<div class="fld"><label>Silo Diameter <span class="u">m</span></label><input type="number" value="${v.siloDia}" step="0.5" oninput="vents[${i}].siloDia=+this.value;calcVentVol(${i});calc()"></div>`;
+    } else if(eq.input==='manual'||eq.input==='custom'){
+      inputHTML=`<div class="fld"><label>Volume <span class="u">m³/h</span></label><input type="number" value="${v.customVol}" oninput="vents[${i}].customVol=+this.value;vents[${i}].volume=+this.value;calc()"></div>`;
+    }
+
+    const typeOpts=EQUIP_TYPES.map(e=>`<option value="${e.id}" ${v.type===e.id?'selected':''}>${e.name}</option>`).join('');
+
+    return `<div class="vent-card">
+      <div class="vent-hdr">
+        <span class="vent-num">Point ${i+1}</span>
+        <span class="vent-vol">${f0(v.volume)} m³/h</span>
+        <button class="btn-del" onclick="removeVent(${i})">✕ Remove</button>
+      </div>
+      <div class="inp-grid">
+        <div class="fld"><label>Equipment Type</label><select onchange="vents[${i}].type=this.value;vents[${i}].size=0;vents[${i}].volume=0;renderVents()" style="width:100%;padding:8px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px">${typeOpts}</select></div>
+        ${inputHTML}
+        <div class="fld"><label>Pipe Application</label><select onchange="vents[${i}].pipeApp=this.value;calc()" style="width:100%;padding:8px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px">
+          <option value="low" ${v.pipeApp==='low'?'selected':''}>Low Abrasion (20 m/s)</option>
+          <option value="high" ${v.pipeApp==='high'?'selected':''}>High Abrasion (10 m/s)</option>
+          <option value="coal" ${v.pipeApp==='coal'?'selected':''}>Coal Explosion (20 m/s)</option>
+        </select></div>
+        <div class="fld"><label>Pipe Length <span class="u">m</span></label><input type="number" value="${v.pipeLen}" oninput="vents[${i}].pipeLen=+this.value;calc()"></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  updateVentSum();
+  calc();
+}
+
+function calcVentVol(i){
+  const v=vents[i];
+  const eq=EQUIP_TYPES.find(e=>e.id===v.type);
+  if(!eq)return;
+
+  if(eq.input==='width'||eq.input==='size'){
+    const idx=eq.sizes.indexOf(v.size);
+    v.volume=idx>=0?eq.vols[idx]:0;
+  } else if(eq.input==='tph'){
+    v.volume=(v.tph||0)*eq.volPerTPH;
+  } else if(eq.input==='dia_len'){
+    const idx=eq.sizes.indexOf(v.size);
+    const volPer10=(idx>=0)?eq.volsPer10m[idx]:0;
+    v.volume=volPer10*(v.asLen||0)/10;
+  } else if(eq.input==='airslide'){
+    const W=(v.asWidth||0)/1000;
+    const L=v.asLen||0;
+    const q=v.asACR||2.4;
+    const aerationAir=W*L*q*1.2;
+    const Tm=v.asTm||80,Ta=v.asTa||15;
+    const tempFactor=(273.15+Tm)/(273.15+Ta);
+    v.volume=aerationAir*tempFactor*60;
+  } else if(eq.input==='silo_dia'){
+    const d=v.siloDia||0;
+    v.volume=d>0?Math.PI*d*d/4*1.5*60:0; // 1.5 m3/min per m2 × area
+  } else if(eq.input==='silo_dia_na'){
+    const d=v.siloDia||0;
+    // Interpolate from reference data
+    let vol=0;
+    for(let j=0;j<NA_SILO.dias.length;j++){
+      if(d<=NA_SILO.dias[j]){vol=NA_SILO.vols[j];break}
+    }
+    if(d>NA_SILO.dias[NA_SILO.dias.length-1])vol=NA_SILO.vols[NA_SILO.vols.length-1];
+    v.volume=vol;
+  } else if(eq.input==='manual'||eq.input==='custom'){
+    v.volume=v.customVol||0;
+  }
+}
+
+function updateVentSum(){
+  const total=vents.reduce((s,v)=>s+v.volume,0);
+  document.getElementById('ventSum').innerHTML=`
+    <span class="sum-item">Venting Points: <strong>${vents.length}/6</strong></span><span class="sum-sep"></span>
+    <span class="sum-item">Total Volume: <strong>${f0(total)} m³/h</strong></span>
+  `;
+}
+
+function calc(){
+  updateVentSum();
+  const totalVol=vents.reduce((s,v)=>s+v.volume,0);
+  if(!totalVol)return;
+
+  const acr=gv('acr'),bagD=gv('bagDia'),bagL=gv('bagLen'),dp=gv('dp'),fanEff=gv('fanEff'),opTemp=gv('opTemp'),fanMargin=gv('fanMargin');
+
+  // Bagfilter capacity = total volume
+  const bfCap=totalVol;
+  // Fan capacity with margin
+  const fanCap=bfCap*(1+fanMargin/100);
+  // Filter area
+  const filterArea=acr>0?bfCap/(acr*60):0;
+  // Bag surface area
+  const bagSA=Math.PI*(bagD/1000)*(bagL/1000);
+  // Number of bags
+  const nBags=bagSA>0?filterArea/bagSA:0;
+  // Fan power at operating temp
+  const tempFactor=(273.15+opTemp)/(273.15+20);
+  const fanPowerOp=fanEff>0?(fanCap/3600)*(dp*9.81)/(fanEff*1000):0;
+  const fanPower20=fanPowerOp*tempFactor;
+  // Standard motor
+  let motorSize=0;
+  const reqPower=fanPower20*1.1; // 10% margin
+  for(const m of MOTORS){if(m>=reqPower){motorSize=m;break}}
+  if(!motorSize)motorSize=MOTORS[MOTORS.length-1];
+
+  // Results
+  document.getElementById('resGrid').innerHTML=[
+    {l:'Bagfilter Capacity',v:f0(bfCap),u:'m³/h',hl:true},
+    {l:'Fan Capacity',v:f0(fanCap),u:'m³/h'},
+    {l:'Filter Area',v:f1(filterArea),u:'m²'},
+    {l:'Number of Bags',v:Math.ceil(nBags),u:'nos'},
+    {l:'Fan Power @ Op. Temp',v:f1(fanPowerOp),u:'kW'},
+    {l:'Fan Power @ 20°C',v:f1(fanPower20),u:'kW',hl:true},
+  ].map(d=>`<div class="m ${d.hl?'hl':''}""><div class="lb">${d.l}</div><div class="vl">${d.v}<span class="us">${d.u}</span></div></div>`).join('');
+
+  document.getElementById('motorGrid').innerHTML=`
+    <div class="m ok"><div class="lb">Required Power</div><div class="vl">${f1(reqPower)}<span class="us">kW</span></div></div>
+    <div class="m hl"><div class="lb">Selected Motor</div><div class="vl">${motorSize}<span class="us">kW</span></div></div>
+  `;
+
+  // Vent summary table
+  document.getElementById('ventSumTable').innerHTML=`<thead><tr><th>Point</th><th>Equipment</th><th>Volume (m³/h)</th><th>Application</th></tr></thead><tbody>`+
+    vents.map((v,i)=>{
+      const eq=EQUIP_TYPES.find(e=>e.id===v.type);
+      return`<tr><td style="font-weight:600;color:var(--accent2)">${i+1}</td><td>${eq?.name||'—'}</td><td style="font-family:'JetBrains Mono',monospace;font-weight:600">${f0(v.volume)}</td><td>${v.pipeApp==='low'?'Low Abrasion':v.pipeApp==='high'?'High Abrasion':'Coal'}</td></tr>`;
+    }).join('')+
+    `<tr style="border-top:2px solid var(--accent)"><td colspan="2" style="font-weight:700;color:var(--accent2)">TOTAL</td><td style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--accent2)">${f0(totalVol)}</td><td></td></tr></tbody>`;
+
+  // Pipe sizing
+  calcPipes();
+}
+
+function calcPipes(){
+  const PI=Math.PI;
+  const rows=vents.map((v,i)=>{
+    const vel=v.pipeApp==='high'?10:20;
+    const volM3s=v.volume/3600;
+    const area=vel>0?volM3s/vel:0;
+    const dia=area>0?Math.sqrt(4*area/PI)*1000:0; // mm
+    // Find nearest standard pipe
+    const stdPipes=[139.7,168.3,193.7,219.1,224,250,280,315,400,450,500,560,630,710,800,900,1000,1060,1120,1250];
+    let selPipe=0;
+    for(const p of stdPipes){if(p>=dia){selPipe=p;break}}
+    if(!selPipe)selPipe=stdPipes[stdPipes.length-1];
+    const actVel=selPipe>0?volM3s/(PI*(selPipe/2000)**2):0;
+    const thk=v.pipeApp==='high'?6:v.pipeApp==='coal'?5:3;
+    const wt=selPipe>0?PI*(selPipe/1000)*thk*7.85*(v.pipeLen||20):0;
+    return{i:i+1,vol:v.volume,calcDia:dia,selDia:selPipe,thk,vel:actVel,len:v.pipeLen||20,wt,app:v.pipeApp};
+  });
+
+  document.getElementById('pipeTable').innerHTML=`<thead><tr><th>Pt</th><th>Vol (m³/h)</th><th>Application</th><th>Calc. Dia (mm)</th><th>Sel. Dia (mm)</th><th>Thk (mm)</th><th>Velocity (m/s)</th><th>Length (m)</th><th>Weight (kg)</th></tr></thead><tbody>`+
+    rows.map(r=>`<tr>
+      <td style="font-weight:600;color:var(--accent2)">${r.i}</td>
+      <td style="font-family:'JetBrains Mono',monospace">${f0(r.vol)}</td>
+      <td>${r.app==='low'?'Low':r.app==='high'?'High':'Coal'}</td>
+      <td style="font-family:'JetBrains Mono',monospace">${f0(r.calcDia)}</td>
+      <td style="font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--green)">${r.selDia}</td>
+      <td style="font-family:'JetBrains Mono',monospace">${r.thk}</td>
+      <td style="font-family:'JetBrains Mono',monospace;color:${r.vel>22?'var(--red)':'var(--text)'}">${f1(r.vel)}</td>
+      <td style="font-family:'JetBrains Mono',monospace">${r.len}</td>
+      <td style="font-family:'JetBrains Mono',monospace">${f0(r.wt)}</td>
+    </tr>`).join('')+
+    `<tr style="border-top:2px solid var(--accent)"><td colspan="8" style="font-weight:700;color:var(--accent2);text-align:right">Total Pipe Weight</td><td style="font-family:'JetBrains Mono',monospace;font-weight:700">${f0(rows.reduce((s,r)=>s+r.wt,0))} kg</td></tr></tbody>`;
+}
+
+// Nm3 converter
+function pressureAtElev(h){return 101325*Math.pow(1-2.25577e-5*h,5.25588)}
+function calcConv(){
+  const V1=gv('cv_nm3'),H=gv('cv_elev'),T2=gv('cv_temp');
+  const P1=101325,T1=273.15;
+  const P2=pressureAtElev(H);
+  const V2=V1*(P1/P2)*((T2+273.15)/T1);
+  document.getElementById('cv_m3res').textContent=f2(V2)+' m³';
+}
+function calcConvR(){
+  const V2=gv('cv_m3'),H=gv('cv_elev2'),T2=gv('cv_temp2');
+  const P1=101325,T1=273.15;
+  const P2=pressureAtElev(H);
+  const V1=V2*(P2/P1)*(T1/(T2+273.15));
+  document.getElementById('cv_nm3res').textContent=f2(V1)+' Nm³';
+}
+
+// Init
+addVent();
+calcConv();
+calcConvR();
+</script>
+</body>
+</html>

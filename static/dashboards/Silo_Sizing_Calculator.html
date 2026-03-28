@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Silo Sizing Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b0e14;--bg2:#111620;--bg3:#171d2a;--border:#252e42;--border2:#2f3b55;--text:#e8ecf4;--text2:#9aa2c0;--text3:#6b7394;--accent:#e88b2e;--accent2:#f5a54b;--accentDim:rgba(232,139,46,0.1);--green:#22c55e;--red:#ef4444;--cyan:#22d3ee}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;line-height:1.6}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+.hdr{background:rgba(11,14,20,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100}
+.hdr-icon{width:42px;height:42px;background:linear-gradient(135deg,var(--accent),#d97706);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px}
+.hdr h1{font-size:18px;font-weight:700}.hdr p{font-size:11px;color:var(--text3)}
+.tabs{display:flex;gap:2px;padding:8px 28px;background:var(--bg2);border-bottom:1px solid var(--border);overflow-x:auto;position:sticky;top:70px;z-index:90}
+.tab{padding:8px 18px;border-radius:7px;font-size:12.5px;font-weight:500;color:var(--text3);cursor:pointer;white-space:nowrap;transition:all 0.2s;border:1px solid transparent}
+.tab:hover{color:var(--text2);background:var(--bg3)}.tab.active{color:var(--accent2);background:var(--accentDim);border-color:rgba(232,139,46,0.2)}
+.main{max-width:1400px;margin:0 auto;padding:24px 28px}
+.panel{display:none}.panel.active{display:block}
+.layout{display:grid;grid-template-columns:340px 1fr;gap:20px}
+@media(max-width:900px){.layout{grid-template-columns:1fr}.main{padding:12px}}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px}
+.card-t{font-size:14px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.card-t::before{content:'';width:3px;height:16px;background:var(--accent);border-radius:2px}
+.fld{margin-bottom:14px}.fld label{display:flex;justify-content:space-between;font-size:12px;font-weight:500;color:var(--text2);margin-bottom:5px}
+.fld .u{font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--text3);background:var(--bg3);padding:1px 5px;border-radius:3px}
+.fld input,.fld select{width:100%;padding:9px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:13px;outline:none}
+.fld input:focus,.fld select:focus{border-color:var(--accent)}
+.res-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
+.m{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px}
+.m .lb{font-size:10px;font-weight:500;color:var(--text2);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.4px}
+.m .vl{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:600;color:var(--accent2)}
+.m .vl .us{font-size:11px;font-weight:400;color:var(--text3);margin-left:3px}
+.m.hl{border-color:rgba(232,139,46,0.3);background:var(--accentDim)}
+.m.red .vl{color:var(--red)}
+.warn{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--red);margin-top:10px}
+table.rv{width:100%;border-collapse:collapse;font-size:13px}
+table.rv th{text-align:left;padding:8px 12px;font-size:10px;color:var(--accent2);text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid var(--border2);background:var(--bg3)}
+table.rv td{padding:8px 12px;border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace}
+</style>
+</head>
+<body>
+<div class="hdr"><div class="hdr-icon">🏗️</div><div><h1>Silo Sizing Calculator</h1><p>IBAU Standard — Inverted Cone & Flat Bottom</p></div></div>
+<div class="tabs">
+<div class="tab active" data-t="inv">Inverted Cone Silo</div>
+<div class="tab" data-t="flat">Flat Bottom Silo</div>
+<div class="tab" data-t="rev">Reverse Calculator</div>
+</div>
+<div class="main">
+<!-- INVERTED CONE -->
+<div class="panel active" id="p-inv"><div class="layout"><div><div class="card"><div class="card-t">Input Data</div>
+<div class="fld"><label>1. Silo Capacity <span class="u">t</span></label><input type="number" id="ic_cap" value="0" oninput="calcIC()"></div>
+<div class="fld"><label>2. Silo Diameter <span class="u">m</span></label><select id="ic_dia" onchange="calcIC()"><option value="0">Select</option></select></div>
+<div class="fld"><label>3. Cone Angle <span class="u">deg</span></label><input type="number" id="ic_cone" value="60" oninput="calcIC()"></div>
+<div class="fld"><label>4. Repose Angle <span class="u">deg</span></label><input type="number" id="ic_rep" value="10" oninput="calcIC()"></div>
+<div class="fld"><label>5. Material</label><select id="ic_mat" onchange="document.getElementById('ic_den').value=this.value;calcIC()"><option value="0.8">Raw Meal (0.8)</option><option value="1.1">Cement (1.1)</option><option value="0.8" selected>Flyash (0.8)</option></select></div>
+<div class="fld"><label>Bulk Density <span class="u">t/m³</span></label><input type="number" id="ic_den" value="0.8" step="0.01" oninput="calcIC()"></div>
+<div class="fld"><label>6. Height upto cone bottom <span class="u">m</span></label><input type="number" id="ic_hcb" value="0" step="0.1" oninput="calcIC()"></div>
+<div class="fld"><label>7. Clearance at top <span class="u">m</span></label><input type="number" id="ic_clr" value="0.8" step="0.1" oninput="calcIC()"></div>
+</div></div><div><div class="card"><div class="card-t">Output Data</div><div class="res-grid" id="ic_res"></div></div>
+<div class="card"><div class="card-t">Silo Cross-Section</div><div style="background:#b0cfe0;border-radius:10px;padding:8px;display:flex;justify-content:center"><svg id="ic_svg" viewBox="0 0 480 750" width="100%" style="max-width:480px"></svg></div></div></div></div></div>
+
+<!-- FLAT BOTTOM -->
+<div class="panel" id="p-flat"><div class="layout"><div><div class="card"><div class="card-t">Input Data</div>
+<div class="fld"><label>1. Silo Capacity <span class="u">t</span></label><input type="number" id="fb_cap" value="0" oninput="calcFB()"></div>
+<div class="fld"><label>2. Silo Diameter <span class="u">m</span></label><select id="fb_dia" onchange="calcFB()"><option value="0">Select</option></select></div>
+<div class="fld"><label>3. Cone Angle <span class="u">deg</span></label><input type="number" id="fb_cone" value="60" oninput="calcFB()"></div>
+<div class="fld"><label>4. Repose Angle <span class="u">deg</span></label><input type="number" id="fb_rep" value="10" oninput="calcFB()"></div>
+<div class="fld"><label>5. Material</label><select id="fb_mat" onchange="document.getElementById('fb_den').value=this.value;calcFB()"><option value="1.2" selected>Cement (1.2)</option><option value="0.8">Raw Meal (0.8)</option><option value="0.8">Flyash (0.8)</option></select></div>
+<div class="fld"><label>Bulk Density <span class="u">t/m³</span></label><input type="number" id="fb_den" value="1.2" step="0.01" oninput="calcFB()"></div>
+<div class="fld"><label>6. Height upto cone bottom <span class="u">m</span></label><input type="number" id="fb_hcb" value="0" step="0.1" oninput="calcFB()"></div>
+<div class="fld"><label>7. Clearance at top <span class="u">m</span></label><input type="number" id="fb_clr" value="0.8" step="0.1" oninput="calcFB()"></div>
+</div></div><div><div class="card"><div class="card-t">Output Data</div><div class="res-grid" id="fb_res"></div></div>
+<div class="card"><div class="card-t">Silo Cross-Section</div><div style="background:#b0cfe0;border-radius:10px;padding:8px;display:flex;justify-content:center"><svg id="fb_svg" viewBox="0 0 480 750" width="100%" style="max-width:480px"></svg></div></div></div></div></div>
+
+<!-- REVERSE -->
+<div class="panel" id="p-rev"><div class="layout"><div><div class="card"><div class="card-t">Reverse — Find Diameter</div>
+<div class="fld"><label>Capacity <span class="u">t</span></label><input type="number" id="rv_cap" value="0" oninput="calcRev()"></div>
+<div class="fld"><label>Silo Type</label><select id="rv_type" onchange="calcRev()"><option value="inv">Inverted Cone</option><option value="flat">Flat Bottom</option></select></div>
+<div class="fld"><label>Bulk Density <span class="u">t/m³</span></label><input type="number" id="rv_den" value="0.8" step="0.01" oninput="calcRev()"></div>
+<div class="fld"><label>Cone Angle <span class="u">deg</span></label><input type="number" id="rv_cone" value="60" oninput="calcRev()"></div>
+<div class="fld"><label>Repose Angle <span class="u">deg</span></label><input type="number" id="rv_rep" value="10" oninput="calcRev()"></div>
+<div class="fld"><label>Height upto cone bottom <span class="u">m</span></label><input type="number" id="rv_hcb" value="11" oninput="calcRev()"></div>
+<div class="fld"><label>Clearance <span class="u">m</span></label><input type="number" id="rv_clr" value="0.8" oninput="calcRev()"></div>
+</div></div><div><div class="card"><div class="card-t">All Standard Diameters</div><div style="overflow-x:auto"><table class="rv" id="rv_table"></table></div></div></div></div></div>
+</div>
+
+<script>
+const PI=Math.PI;
+const IBAU=[{D:8,d:7.5},{D:10,d:9.2},{D:11,d:9.24},{D:12,d:10.35},{D:13,d:10.4},{D:14,d:11.54},{D:15,d:12.6},{D:16,d:13.6},{D:18,d:14.6},{D:20,d:17.55},{D:22,d:19.515}];
+['ic_dia','fb_dia'].forEach(id=>{const s=document.getElementById(id);IBAU.forEach(x=>s.innerHTML+=`<option value="${x.D}">${x.D} m</option>`)});
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.t===t.dataset.t));document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active',p.id==='p-'+t.dataset.t))}));
+const gv=id=>+(document.getElementById(id)?.value)||0;
+const f0=v=>(typeof v==='number'&&isFinite(v))?Math.round(v):'—';
+const f1=v=>(typeof v==='number'&&isFinite(v))?v.toFixed(1):'—';
+const f2=v=>(typeof v==='number'&&isFinite(v))?v.toFixed(2):'—';
+
+// ═══ EXACT EXCEL FORMULAS ═══
+function siloCalc(cap,D,d,coneA,repA,den,hcb,clr){
+  if(!cap||!D||!den)return null;
+  const R=D/2, r=d/2;
+  const reqVol=cap/den;
+  // Cone height = (d/2)*tan(coneAngle)
+  const coneH=d>0?r*Math.tan(coneA*PI/180):0;
+  // H4 = (D/2)*tan(HCB_as_degrees) — Excel formula uses E9 (HCB value) as angle
+  const H4=R*Math.tan(hcb*PI/180);
+  // Repose volume — deliberately NO PI (matches Excel exactly)
+  const volRep=(1/3)*(D*D/4)*H4;
+  // Geometric correction for cone-wall intersection
+  const V10=r>0?r*Math.sin(10*PI/180)/Math.sin((180-10-coneA)*PI/180)*Math.sin(coneA*PI/180):0;
+  const V8=V10>0?V10/Math.tan(coneA*PI/180):0;
+  const U12=(D-d)/2;
+  const H14=R*Math.tan(10*PI/180);
+  const T9=H14-V10;
+  const U7=0.5*(U12+V8)*T9;
+  const U13=V10*U12;
+  const V12_=0.5*V10*V8;
+  const V14=U13+V12_+U7;
+  const V15=PI*(d+U12)*V14;
+  // Volume up to cone
+  const volCone=coneH>0?PI*coneH*(D*D/4-d*d/12)-V15:-V15;
+  // Cylinder
+  const volCyl=reqVol-volCone-volRep;
+  const cylH=(4/PI)*volCyl/(D*D);
+  const effH=coneH+cylH+H4+clr;
+  const totalH=hcb+effH;
+  return{reqVol,volCone,volRep,volCyl,coneH,cylH,effH,totalH,H4,H14,D,d,hcb,clr,cap,den};
+}
+
+function renderOutput(elId,r){
+  document.getElementById(elId).innerHTML=[
+    {l:'1. Required Silo Volume',v:f0(r.reqVol),u:'m³'},
+    {l:'2. Volume upto Cone',v:f0(r.volCone),u:'m³'},
+    {l:'3. Volume due to Repose',v:f0(r.volRep),u:'m³'},
+    {l:'4. Volume in Cyl Portion',v:f0(r.volCyl),u:'m³',hl:1},
+    {l:'5. Cone Height',v:f2(r.coneH),u:'m'},
+    {l:'6. Height of Cyl Portion',v:f0(r.cylH),u:'m'},
+    {l:'7. Effective Height',v:f0(r.effH),u:'m',hl:1,red:r.effH},
+    {l:'8. Total Height',v:f0(r.totalH),u:'m',hl:1},
+  ].map(x=>`<div class="m ${x.hl?'hl':''} ${r.volCyl<0&&x.l.includes('Cyl')?'red':''}"><div class="lb">${x.l}</div><div class="vl">${x.v}<span class="us">${x.u}</span></div></div>`).join('')+(r.volCyl<0?'<div class="warn" style="grid-column:1/-1">⚠ Cylinder volume is negative — increase diameter or reduce capacity.</div>':'');
+}
+
+function calcIC(){
+  const cap=gv('ic_cap'),D=gv('ic_dia'),cone=gv('ic_cone'),rep=gv('ic_rep'),den=gv('ic_den'),hcb=gv('ic_hcb'),clr=gv('ic_clr');
+  const ib=IBAU.find(x=>x.D===D);if(!ib)return;
+  const r=siloCalc(cap,D,ib.d,cone,rep,den,hcb,clr);if(!r)return;
+  renderOutput('ic_res',r);
+  drawSilo('ic_svg',r,true);
+}
+function calcFB(){
+  const cap=gv('fb_cap'),D=gv('fb_dia'),cone=gv('fb_cone'),rep=gv('fb_rep'),den=gv('fb_den'),hcb=gv('fb_hcb'),clr=gv('fb_clr');
+  const r=siloCalc(cap,D,0,cone,rep,den,hcb,clr);if(!r)return;
+  renderOutput('fb_res',r);
+  drawSilo('fb_svg',r,false);
+}
+
+// ═══ DIAGRAM — exactly matches Excel's visual style ═══
+function drawSilo(svgId,r,isInv){
+  const svg=document.getElementById(svgId);
+  if(!r||!r.D||r.totalH<=0){svg.innerHTML='';return}
+  const W=480,H=750,pad=45;
+  const totalH=Math.abs(r.totalH);
+  const sc=Math.min((W-2*pad-100)/r.D,(H-2*pad-40)/totalH);
+  const sw=r.D*sc,dw=r.d*sc;
+  const cx=W/2;
+  const gndY=H-pad-20;
+  // Y positions (from bottom up)
+  const legBotY=gndY;
+  const legTopY=gndY-Math.abs(r.hcb)*sc;
+  const coneBotY=legTopY; // cone bottom = top of legs
+  const coneTopY=legTopY-Math.abs(r.coneH)*sc;
+  const cylBotY=isInv?coneTopY:legTopY;
+  const cylTopY=cylBotY-Math.abs(r.cylH)*sc;
+  const repTopY=cylTopY-Math.abs(r.H4)*sc;
+  const topY=repTopY-Math.abs(r.clr)*sc;
+  const wallT=6;const colW=14;const colIn=sw*0.12;
+  const dimR='#c00000',txtB='#00008b',mn='JetBrains Mono,monospace',gr='#708090';
+  let s='';
+  // ── SUPPORT STRUCTURE (legs + braces) ──
+  if(r.hcb>0){
+    // Left column
+    s+=`<rect x="${cx-sw/2-colW/2+colIn}" y="${legTopY}" width="${colW}" height="${(legBotY-legTopY)}" fill="${gr}" stroke="#4a5568" stroke-width="1"/>`;
+    // Right column
+    s+=`<rect x="${cx+sw/2-colW/2-colIn}" y="${legTopY}" width="${colW}" height="${(legBotY-legTopY)}" fill="${gr}" stroke="#4a5568" stroke-width="1"/>`;
+    // Bottom cross beam
+    s+=`<rect x="${cx-sw/2+colIn-2}" y="${legBotY-8}" width="${sw-2*colIn+4}" height="${8}" fill="${gr}" stroke="#4a5568" stroke-width="1"/>`;
+    // Mid brace
+    const midY=legTopY+(legBotY-legTopY)*0.5;
+    s+=`<rect x="${cx-sw/2+colIn-2}" y="${midY}" width="${sw-2*colIn+4}" height="${6}" fill="${gr}" stroke="#4a5568" stroke-width="1"/>`;
+    // Ring beam at top of legs
+    s+=`<rect x="${cx-sw/2-3}" y="${legTopY-4}" width="${sw+6}" height="${8}" fill="${gr}" stroke="#4a5568" stroke-width="1"/>`;
+  }
+  // ── SILO SHELL ──
+  if(isInv){
+    // Cylinder + cone area walls
+    s+=`<rect x="${cx-sw/2}" y="${coneTopY}" width="${wallT}" height="${(coneBotY-coneTopY)+(cylTopY<coneTopY?0:0)}" fill="${gr}" stroke="#4a5568" stroke-width="0.5"/>`;
+    s+=`<rect x="${cx+sw/2-wallT}" y="${coneTopY}" width="${wallT}" height="${(coneBotY-coneTopY)}" fill="${gr}" stroke="#4a5568" stroke-width="0.5"/>`;
+    // Cylinder walls
+    s+=`<rect x="${cx-sw/2}" y="${cylTopY}" width="${wallT}" height="${(coneTopY-cylTopY)}" fill="${gr}" stroke="#4a5568" stroke-width="0.5"/>`;
+    s+=`<rect x="${cx+sw/2-wallT}" y="${cylTopY}" width="${wallT}" height="${(coneTopY-cylTopY)}" fill="${gr}" stroke="#4a5568" stroke-width="0.5"/>`;
+    // Inverted cone (triangle, apex UP)
+    s+=`<polygon points="${cx-dw/2},${coneBotY-4} ${cx+dw/2},${coneBotY-4} ${cx},${coneTopY}" fill="none" stroke="#4a5568" stroke-width="2.5"/>`;
+    // Dashed centerline
+    s+=`<line x1="${cx}" y1="${coneBotY}" x2="${cx}" y2="${coneTopY}" stroke="#4a5568" stroke-width="1" stroke-dasharray="8,5"/>`;
+  } else {
+    // Flat bottom: just cylinder walls
+    s+=`<rect x="${cx-sw/2}" y="${cylTopY}" width="${wallT}" height="${(legTopY-cylTopY)}" fill="${gr}" stroke="#4a5568" stroke-width="0.5"/>`;
+    s+=`<rect x="${cx+sw/2-wallT}" y="${cylTopY}" width="${wallT}" height="${(legTopY-cylTopY)}" fill="${gr}" stroke="#4a5568" stroke-width="0.5"/>`;
+    // Flat bottom slab
+    s+=`<rect x="${cx-sw/2}" y="${legTopY-3}" width="${sw}" height="${6}" fill="${gr}" stroke="#4a5568" stroke-width="1"/>`;
+  }
+  // Repose pile on top
+  if(r.H4>0.01){
+    s+=`<polygon points="${cx-sw/2+wallT},${cylTopY} ${cx},${repTopY} ${cx+sw/2-wallT},${cylTopY}" fill="none" stroke="#4a5568" stroke-width="1.5"/>`;
+  }
+  // Top slab
+  s+=`<rect x="${cx-sw/2-3}" y="${topY}" width="${sw+6}" height="${5}" fill="${gr}" stroke="#4a5568" stroke-width="1"/>`;
+  // Top columns above slab (short posts)
+  s+=`<rect x="${cx-sw/2}" y="${topY}" width="${wallT}" height="${(repTopY-topY)}" fill="${gr}" stroke="#4a5568" stroke-width="0.5"/>`;
+  s+=`<rect x="${cx+sw/2-wallT}" y="${topY}" width="${wallT}" height="${(repTopY-topY)}" fill="${gr}" stroke="#4a5568" stroke-width="0.5"/>`;
+
+  // ═══ DIMENSION LABELS (red) ═══
+  const lx=cx-sw/2-12; // left dimension line x
+  const rx=cx+sw/2+15; // right dimension line x
+  const rx2=cx+sw/2+55; // far right
+  // Helper: draw dimension with arrows
+  function dimV(x,y1,y2,label,side){
+    const my=(y1+y2)/2;
+    s+=`<line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}" stroke="${dimR}" stroke-width="1"/>`;
+    s+=`<line x1="${x-4}" y1="${y1}" x2="${x+4}" y2="${y1}" stroke="${dimR}" stroke-width="1"/>`;
+    s+=`<line x1="${x-4}" y1="${y2}" x2="${x+4}" y2="${y2}" stroke="${dimR}" stroke-width="1"/>`;
+    if(side==='left')s+=`<text x="${x-5}" y="${my+4}" fill="${dimR}" font-size="12" font-family="${mn}" font-weight="700" text-anchor="end">${label}</text>`;
+    else s+=`<text x="${x+5}" y="${my+4}" fill="${dimR}" font-size="12" font-family="${mn}" font-weight="700" text-anchor="start">${label}</text>`;
+  }
+  // Clearance
+  if(r.clr>0)dimV(lx,topY+3,repTopY,f1(r.clr),'left');
+  // Repose height (H4)
+  if(r.H4>0.05)dimV(lx,repTopY,cylTopY,f2(r.H4),'left');
+  // Cylinder height
+  if(r.cylH>0)dimV(lx,cylTopY,isInv?coneTopY:legTopY,f1(r.cylH),'left');
+  // Support height
+  if(r.hcb>0)dimV(lx,legTopY,legBotY,f0(r.hcb),'left');
+  // Cone height (right side)
+  if(isInv&&r.coneH>0)dimV(rx,coneTopY,coneBotY,f2(r.coneH),'right');
+  // Effective height (far right)
+  dimV(rx2,repTopY,isInv?coneBotY:legTopY,f0(r.effH),'right');
+  // Cone bottom dimension line (H14)
+  if(isInv&&r.H14>0.05){
+    const h14Y=coneBotY-Math.abs(r.H14)*sc;
+    // small marks at cone base
+  }
+
+  // ═══ TEXT LABELS (blue) ═══
+  // Diameter arrow
+  const diaY=cylTopY+(((isInv?coneTopY:legTopY)-cylTopY)*0.35);
+  s+=`<line x1="${cx-sw/2+wallT+3}" y1="${diaY}" x2="${cx+sw/2-wallT-3}" y2="${diaY}" stroke="${txtB}" stroke-width="1.2"/>`;
+  s+=`<polygon points="${cx-sw/2+wallT+3},${diaY} ${cx-sw/2+wallT+10},${diaY-3} ${cx-sw/2+wallT+10},${diaY+3}" fill="${txtB}"/>`;
+  s+=`<polygon points="${cx+sw/2-wallT-3},${diaY} ${cx+sw/2-wallT-10},${diaY-3} ${cx+sw/2-wallT-10},${diaY+3}" fill="${txtB}"/>`;
+  s+=`<text x="${cx}" y="${diaY-6}" fill="${txtB}" font-size="14" font-family="${mn}" font-weight="600" text-anchor="middle">${r.D}</text>`;
+  // Capacity label
+  s+=`<text x="${cx}" y="${diaY+16}" fill="${txtB}" font-size="12" font-family="${mn}" text-anchor="middle">Cap. ${f0(r.cap)} t</text>`;
+  // Cone bottom diameter
+  if(isInv&&r.d>0){
+    const cdY=coneBotY+16;
+    s+=`<text x="${cx}" y="${cdY}" fill="${txtB}" font-size="11" font-family="${mn}" text-anchor="middle">${r.d}</text>`;
+  }
+  // Footer
+  s+=`<text x="${cx}" y="${H-10}" fill="${txtB}" font-size="11" font-family="DM Sans,sans-serif" text-anchor="middle" font-style="italic">All Dimensions are in meters</text>`;
+  svg.innerHTML=s;
+}
+
+// ═══ REVERSE CALCULATOR ═══
+function calcRev(){
+  const cap=gv('rv_cap'),den=gv('rv_den'),cone=gv('rv_cone'),rep=gv('rv_rep'),hcb=gv('rv_hcb'),clr=gv('rv_clr');
+  const type=document.getElementById('rv_type').value;
+  if(!cap||!den)return;
+  const rows=IBAU.map(ib=>{
+    const d=type==='inv'?ib.d:0;
+    const r=siloCalc(cap,ib.D,d,cone,rep,den,hcb,clr);
+    if(!r)return null;
+    const hd=r.cylH/ib.D;
+    return{D:ib.D,d,coneH:r.coneH,cylH:r.cylH,effH:r.effH,totalH:r.totalH,hd,volCyl:r.volCyl};
+  }).filter(Boolean);
+  document.getElementById('rv_table').innerHTML=`<thead><tr><th>Dia</th>${type==='inv'?'<th>d (IBAU)</th><th>Cone H</th>':''}<th>Cyl H</th><th>Eff H</th><th>Total H</th><th>H/D</th><th></th></tr></thead><tbody>`+
+  rows.map(r=>`<tr style="${r.volCyl<0?'opacity:0.3':''}"><td style="font-weight:700;color:var(--accent2)">${r.D}m</td>${type==='inv'?`<td>${f1(r.d)}</td><td>${f2(r.coneH)}</td>`:''}<td>${f0(r.cylH)}</td><td>${f0(r.effH)}</td><td style="font-weight:700">${f0(r.totalH)}</td><td style="color:${r.hd<=3?'var(--green)':'var(--red)'}">${f2(r.hd)}</td><td>${r.volCyl<0?'<span style="color:var(--red);font-size:10px">NEG</span>':r.hd<=3?'<span style="color:var(--green);font-size:10px;font-weight:700">✓</span>':'<span style="color:var(--red);font-size:10px">H/D</span>'}</td></tr>`).join('')+`</tbody>`;
+}
+</script>
+</body>
+</html>
