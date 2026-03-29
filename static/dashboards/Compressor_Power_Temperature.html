@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Compressor Power & Discharge Temperature</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b0e14;--bg2:#111620;--bg3:#171d2a;--border:#252e42;--border2:#2f3b55;--text:#e8ecf4;--text2:#9aa2c0;--text3:#6b7394;--accent:#8b5cf6;--accent2:#a78bfa;--accentDim:rgba(139,92,246,0.1);--green:#22c55e;--greenDim:rgba(34,197,94,0.1);--red:#ef4444;--redDim:rgba(239,68,68,0.1);--amber:#f59e0b;--amberDim:rgba(245,158,11,0.1)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;line-height:1.6}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+.hdr{background:rgba(11,14,20,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100}
+.hdr-icon{width:42px;height:42px;background:linear-gradient(135deg,var(--accent),#6d28d9);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px}
+.hdr h1{font-size:18px;font-weight:700}.hdr p{font-size:11px;color:var(--text3)}
+.tabs{display:flex;gap:2px;padding:8px 28px;background:var(--bg2);border-bottom:1px solid var(--border);overflow-x:auto;position:sticky;top:70px;z-index:90}
+.tab{padding:8px 18px;border-radius:7px;font-size:12.5px;font-weight:500;color:var(--text3);cursor:pointer;white-space:nowrap;transition:all 0.2s;border:1px solid transparent}
+.tab:hover{color:var(--text2);background:var(--bg3)}.tab.active{color:var(--accent2);background:var(--accentDim);border-color:rgba(139,92,246,0.2)}
+.main{max-width:1200px;margin:0 auto;padding:24px 28px}
+.panel{display:none}.panel.active{display:block}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px}
+.card-t{font-size:14px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.card-t::before{content:'';width:3px;height:16px;background:var(--accent);border-radius:2px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.fld{margin-bottom:14px}.fld label{display:flex;justify-content:space-between;font-size:12px;font-weight:500;color:var(--text2);margin-bottom:5px}
+.fld .u{font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--text3);background:var(--bg3);padding:1px 5px;border-radius:3px}
+.fld input{width:100%;padding:9px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:13px;outline:none}
+.fld input:focus{border-color:var(--accent)}
+.fld input.warn-border{border-color:var(--amber)}
+.res-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:16px}
+.m{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px}
+.m .lb{font-size:10px;font-weight:500;color:var(--text2);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.4px}
+.m .vl{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:600;color:var(--accent2)}
+.m .vl .us{font-size:11px;font-weight:400;color:var(--text3);margin-left:3px}
+.m.hl{border-color:rgba(139,92,246,0.3);background:var(--accentDim)}
+.m.hot{border-color:rgba(239,68,68,0.3);background:var(--redDim)}.m.hot .vl{color:var(--red)}
+.m.ok{border-color:rgba(34,197,94,0.25);background:var(--greenDim)}.m.ok .vl{color:var(--green)}
+.warn-box{background:var(--amberDim);border:1px solid rgba(245,158,11,0.3);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--amber);margin-bottom:12px}
+.formula{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text2);margin:10px 0;line-height:1.8}
+.step{display:flex;gap:10px;align-items:flex-start;margin-bottom:8px;padding:6px 10px;background:rgba(139,92,246,0.03);border-radius:6px}
+.step-n{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;color:var(--accent);background:var(--accentDim);padding:2px 6px;border-radius:4px;min-width:20px;text-align:center}
+.step-t{font-size:12px;color:var(--text2)}
+.step-t strong{color:var(--text)}
+table.sc{width:100%;border-collapse:collapse;font-size:13px}
+table.sc th{text-align:left;padding:8px 10px;font-size:10px;color:var(--accent2);text-transform:uppercase;border-bottom:2px solid var(--border2);background:var(--bg3)}
+table.sc td{padding:8px 10px;border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace}
+table.sc td.inp{padding:4px 6px}
+table.sc input{width:80px;padding:6px 8px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;outline:none}
+@media(max-width:900px){.grid2{grid-template-columns:1fr}.main{padding:12px}.res-grid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="hdr"><div class="hdr-icon">🔧</div><div><h1>Compressor Power & Temperature</h1><p>Isentropic & Real Compression Analysis</p></div></div>
+<div class="tabs">
+<div class="tab active" data-t="calc">Calculator</div>
+<div class="tab" data-t="scenario">Scenario Comparison</div>
+<div class="tab" data-t="theory">Theory & Formulas</div>
+</div>
+<div class="main">
+
+<!-- CALCULATOR -->
+<div class="panel active" id="p-calc">
+<div id="warnings"></div>
+<div class="grid2">
+<div>
+<div class="card">
+<div class="card-t">Input Parameters</div>
+<div class="fld"><label>Flow Rate (Q) <span class="u">Nm³/h</span></label><input type="number" id="Q" value="250" oninput="calc()"></div>
+<div class="fld"><label>Inlet Temperature (t₁) <span class="u">°C</span></label><input type="number" id="t1" value="45" oninput="calc()"></div>
+<div class="fld"><label>Atmospheric Pressure <span class="u">kPa</span></label><input type="number" id="Patm" value="101.3" step="0.1" oninput="calc()"></div>
+<div class="fld"><label>Inlet Gauge Pressure <span class="u">kPa(g)</span></label><input type="number" id="Pin_g" value="0" oninput="calc()"></div>
+<div class="fld"><label>Outlet Gauge Pressure <span class="u">kPa(g)</span></label><input type="number" id="Pout_g" value="850" oninput="calc()"></div>
+<div class="fld"><label>Compressor Efficiency (ηc) <span class="u">—</span></label><input type="number" id="eff" value="0.9" step="0.01" min="0.1" max="1" oninput="calc()"></div>
+<div class="fld"><label>Isentropic Exponent (γ) <span class="u">—</span></label><input type="number" id="gamma" value="1.4" step="0.01" oninput="calc()"></div>
+</div>
+</div>
+<div>
+<div class="card">
+<div class="card-t">Results — Power</div>
+<div class="res-grid" id="powerRes"></div>
+</div>
+<div class="card">
+<div class="card-t">Results — Temperature</div>
+<div class="res-grid" id="tempRes"></div>
+</div>
+<div class="card">
+<div class="card-t">Intermediate Values</div>
+<div id="steps"></div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- SCENARIO COMPARISON -->
+<div class="panel" id="p-scenario">
+<div class="card">
+<div class="card-t">Compare Scenarios — Change Any Variable</div>
+<p style="font-size:12px;color:var(--text3);margin-bottom:16px">Edit values in each scenario column. All cells are editable.</p>
+<div style="overflow-x:auto"><table class="sc" id="scTable"></table></div>
+</div>
+</div>
+
+<!-- THEORY -->
+<div class="panel" id="p-theory">
+<div class="card">
+<div class="card-t">Thermodynamic Formulas</div>
+<h3 style="font-size:13px;color:var(--accent2);margin-bottom:8px">1. Normal Air Density</h3>
+<div class="formula">ρₙ = P / (R × T)<br>where P = 101,325 Pa, R = 286.9 J/(kg·K), T = 293.15 K (20°C)<br>ρₙ ≈ 1.2047 kg/Nm³</div>
+<h3 style="font-size:13px;color:var(--accent2);margin:16px 0 8px">2. Mass Flow Rate</h3>
+<div class="formula">ṁ = Q × ρₙ (kg/h) → ÷ 3600 → kg/s</div>
+<h3 style="font-size:13px;color:var(--accent2);margin:16px 0 8px">3. Compression Ratio</h3>
+<div class="formula">r = P_out / P_in<br>where P_out = P_out_gauge + P_atm, P_in = P_in_gauge + P_atm</div>
+<h3 style="font-size:13px;color:var(--accent2);margin:16px 0 8px">4. Compressor Power (Isentropic)</h3>
+<div class="formula">W = ṁ × Cp × T₁ / ηc × (r^((γ-1)/γ) - 1)<br>where Cp ≈ 1.005 kJ/(kg·K) for air, T₁ in Kelvin</div>
+<h3 style="font-size:13px;color:var(--accent2);margin:16px 0 8px">5. Discharge Temperature</h3>
+<div class="formula">Isentropic: T_disch_s = T_in × (P_out/P_in)^((γ-1)/γ)<br>Real: T_disch = T_in + (T_disch_s - T_in) / ηc</div>
+<h3 style="font-size:13px;color:var(--accent2);margin:16px 0 8px">6. Motor Power</h3>
+<div class="formula">Motor = W × 1.05 (5% auxiliary margin)</div>
+</div>
+</div>
+
+</div>
+<script>
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.t===t.dataset.t));document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active',p.id==='p-'+t.dataset.t))}));
+const gv=id=>+(document.getElementById(id)?.value)||0;
+const f1=v=>(typeof v==='number'&&isFinite(v))?v.toFixed(1):'—';
+const f2=v=>(typeof v==='number'&&isFinite(v))?v.toFixed(2):'—';
+const f3=v=>(typeof v==='number'&&isFinite(v))?v.toFixed(3):'—';
+const f4=v=>(typeof v==='number'&&isFinite(v))?v.toFixed(4):'—';
+
+// Air Cp interpolation (simplified — from Air Data sheet)
+const AIR_DATA=[[-73.15,1.007],[-23.15,1.006],[26.85,1.007],[76.85,1.009],[126.85,1.014],[176.85,1.021],[226.85,1.03],[276.85,1.04],[326.85,1.051],[376.85,1.063]];
+function getCp(tC){
+  for(let i=0;i<AIR_DATA.length-1;i++){
+    if(tC<=AIR_DATA[i+1][0]){
+      const f=(tC-AIR_DATA[i][0])/(AIR_DATA[i+1][0]-AIR_DATA[i][0]);
+      return AIR_DATA[i][1]+f*(AIR_DATA[i+1][1]-AIR_DATA[i][1]);
+    }
+  }
+  return AIR_DATA[AIR_DATA.length-1][1];
+}
+
+function compCalc(Q,t1,Patm,Pin_g,Pout_g,eff,gamma){
+  const warns=[];
+  if(eff<=0||eff>1)warns.push('Efficiency must be 0 < η ≤ 1');
+  if(Pout_g<=Pin_g)warns.push('Outlet pressure must be greater than inlet pressure');
+  if(gamma<=1)warns.push('γ must be > 1 (air = 1.4)');
+  if(t1<-50)warns.push('Inlet temperature is very low — verify input');
+  if(t1>200)warns.push('Inlet temperature >200°C is unusual for compressors');
+  
+  const rhoN=101325/(286.9*293.15); // 1.2047 kg/Nm³
+  const mDot_h=Q*rhoN; // kg/h
+  const mDot=mDot_h/3600; // kg/s
+  const Cp=getCp(t1); // kJ/(kg·K)
+  const T1=t1+273.15; // K
+  const Pin=Pin_g+Patm; // kPa absolute
+  const Pout=Pout_g+Patm; // kPa absolute
+  const r=Pin>0?Pout/Pin:0; // compression ratio
+  const exp=(gamma-1)/gamma;
+  const W=eff>0?mDot*Cp*T1/eff*(Math.pow(r,exp)-1):0; // kW
+  const Wmotor=W*1.05;
+  // Temperature
+  const Tdisch_s=T1*Math.pow(r,exp); // K isentropic
+  const Tdisch=eff>0?T1+(Tdisch_s-T1)/eff:0; // K real
+  
+  return{rhoN,mDot_h,mDot,Cp,T1,Pin,Pout,r,W,Wmotor,Tdisch_s,Tdisch,warns,Q,t1,Patm,eff,gamma};
+}
+
+function calc(){
+  const Q=gv('Q'),t1=gv('t1'),Patm=gv('Patm'),Pin_g=gv('Pin_g'),Pout_g=gv('Pout_g'),eff=gv('eff'),gamma=gv('gamma');
+  const R=compCalc(Q,t1,Patm,Pin_g,Pout_g,eff,gamma);
+  
+  // Warnings
+  document.getElementById('warnings').innerHTML=R.warns.map(w=>`<div class="warn-box">⚠ ${w}</div>`).join('');
+  
+  // Power results
+  const tdC=R.Tdisch-273.15;
+  const isHot=tdC>250;
+  document.getElementById('powerRes').innerHTML=[
+    {l:'Mass Flow',v:f4(R.mDot),u:'kg/s'},
+    {l:'Compression Ratio',v:f2(R.r),u:'—'},
+    {l:'Compressor Power',v:f1(R.W),u:'kW',hl:1},
+    {l:'Motor Power (+5%)',v:f1(R.Wmotor),u:'kW',hl:1},
+  ].map(d=>`<div class="m ${d.hl?'hl':''}""><div class="lb">${d.l}</div><div class="vl">${d.v}<span class="us">${d.u}</span></div></div>`).join('');
+  
+  // Temperature results
+  document.getElementById('tempRes').innerHTML=[
+    {l:'Isentropic Discharge',v:f1(R.Tdisch_s-273.15),u:'°C'},
+    {l:'Isentropic Discharge',v:f1(R.Tdisch_s),u:'K'},
+    {l:'Real Discharge',v:f1(tdC),u:'°C',hot:isHot},
+    {l:'Real Discharge',v:f1(R.Tdisch),u:'K',hot:isHot},
+  ].map(d=>`<div class="m ${d.hot?'hot':''}""><div class="lb">${d.l}</div><div class="vl">${d.v}<span class="us">${d.u}</span></div></div>`).join('');
+  
+  // Steps
+  document.getElementById('steps').innerHTML=[
+    {n:'1',t:`ρₙ = 101325 / (286.9 × 293.15) = <strong>${f4(R.rhoN)} kg/Nm³</strong>`},
+    {n:'2',t:`ṁ = ${R.Q} × ${f4(R.rhoN)} / 3600 = <strong>${f4(R.mDot)} kg/s</strong>`},
+    {n:'3',t:`Cp @ ${R.t1}°C = <strong>${f3(R.Cp)} kJ/(kg·K)</strong>`},
+    {n:'4',t:`Pin = ${gv('Pin_g')} + ${R.Patm} = <strong>${f1(R.Pin)} kPa</strong> | Pout = ${gv('Pout_g')} + ${R.Patm} = <strong>${f1(R.Pout)} kPa</strong>`},
+    {n:'5',t:`r = ${f1(R.Pout)} / ${f1(R.Pin)} = <strong>${f2(R.r)}</strong>`},
+    {n:'6',t:`W = ${f4(R.mDot)} × ${f3(R.Cp)} × ${f1(R.T1)} / ${R.eff} × (${f2(R.r)}^${f3((R.gamma-1)/R.gamma)} - 1) = <strong>${f1(R.W)} kW</strong>`},
+    {n:'7',t:`T_disch(real) = ${f1(R.T1)} + (${f1(R.Tdisch_s)} - ${f1(R.T1)}) / ${R.eff} = <strong>${f1(R.Tdisch)} K (${f1(tdC)}°C)</strong>`},
+  ].map(s=>`<div class="step"><span class="step-n">${s.n}</span><span class="step-t">${s.t}</span></div>`).join('');
+  
+  renderScenarios();
+}
+
+// Scenario table
+let scenarios=[
+  {name:'Base',Q:250,t1:45,Patm:101.3,Pin_g:0,Pout_g:850,eff:0.9,gamma:1.4},
+  {name:'High P',Q:250,t1:45,Patm:101.3,Pin_g:0,Pout_g:1200,eff:0.9,gamma:1.4},
+  {name:'Hot Air',Q:250,t1:80,Patm:101.3,Pin_g:0,Pout_g:850,eff:0.9,gamma:1.4},
+  {name:'High Flow',Q:500,t1:45,Patm:101.3,Pin_g:0,Pout_g:850,eff:0.9,gamma:1.4},
+];
+
+function renderScenarios(){
+  const params=['Q','t1','Patm','Pin_g','Pout_g','eff','gamma'];
+  const labels=['Flow (Nm³/h)','Temp (°C)','Patm (kPa)','Pin_g (kPa)','Pout_g (kPa)','Efficiency','γ'];
+  const results=scenarios.map(s=>compCalc(s.Q,s.t1,s.Patm,s.Pin_g,s.Pout_g,s.eff,s.gamma));
+  
+  let html=`<thead><tr><th>Parameter</th>${scenarios.map((s,i)=>`<th>${s.name}</th>`).join('')}</tr></thead><tbody>`;
+  params.forEach((p,pi)=>{
+    html+=`<tr><td style="font-weight:500;color:var(--text);font-family:DM Sans">${labels[pi]}</td>`;
+    scenarios.forEach((s,si)=>{
+      html+=`<td class="inp"><input value="${s[p]}" onchange="scenarios[${si}]['${p}']=+this.value;renderScenarios()"></td>`;
+    });
+    html+=`</tr>`;
+  });
+  // Output rows
+  const outRows=[
+    {l:'Comp. Ratio',fn:r=>f2(r.r)},
+    {l:'Power (kW)',fn:r=>f1(r.W),hl:true},
+    {l:'Motor (kW)',fn:r=>f1(r.Wmotor),hl:true},
+    {l:'T_disch (°C)',fn:r=>f1(r.Tdisch-273.15)},
+    {l:'T_disch (K)',fn:r=>f1(r.Tdisch)},
+  ];
+  html+=`<tr><td colspan="${scenarios.length+1}" style="padding:4px;background:var(--accent);height:2px"></td></tr>`;
+  outRows.forEach(o=>{
+    html+=`<tr style="${o.hl?'background:rgba(139,92,246,0.04)':''}"><td style="font-weight:600;color:var(--accent2);font-family:DM Sans">${o.l}</td>`;
+    results.forEach(r=>{
+      const v=o.fn(r);
+      html+=`<td style="font-weight:600;color:var(--text)">${v}</td>`;
+    });
+    html+=`</tr>`;
+  });
+  html+=`</tbody>`;
+  document.getElementById('scTable').innerHTML=html;
+}
+
+calc();
+</script>
+</body>
+</html>
