@@ -148,18 +148,6 @@ DASHBOARDS = [
         "keywords": "pipe sizing calculator, pressure drop calculation, pipe diameter selection, fluid velocity, slurry pipe design",
     },
     {
-        "id": "project-management",
-        "title": "Project Management Dashboard",
-        "subtitle": "Cement Plant PM Tool",
-        "description": "Track drawings, submittals, RFIs, and project milestones for cement plant construction projects.",
-        "file": "Project_Management_Dashboard.html",
-        "icon": "📋",
-        "category": "Management",
-        "restricted": False,
-        "color": "#3b82f6",
-        "keywords": "cement plant project management, construction tracking, drawing register, RFI tracker, submittal log",
-    },
-    {
         "id": "raw-mix-design",
         "title": "Raw Mix Design Calculator",
         "subtitle": "Duda Reference Method",
