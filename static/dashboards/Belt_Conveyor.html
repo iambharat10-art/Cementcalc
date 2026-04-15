@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Belt Conveyor Engineering Suite — CEMA / IS 11592</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0d1117;--bg2:#161b22;--bg3:#1c2230;--bg4:#21273a;--bg5:#262e44;
+  --border:#2a3348;--border2:#38466e;
+  --gold:#c9a227;--gold2:#e8ba3c;--gold3:#f5d478;--gold-dim:rgba(201,162,39,.1);
+  --green:#2dc653;--green2:#57ef7b;--green-dim:rgba(45,198,83,.1);
+  --red:#e63946;--red2:#ff6b75;--red-dim:rgba(230,57,70,.1);
+  --cyan:#00b4d8;--cyan2:#48cae4;--cyan-dim:rgba(0,180,216,.1);
+  --violet:#7c3aed;--violet2:#a78bfa;
+  --amber:#e07c24;--amber2:#f4a04b;
+  --slate:#8890b0;--slate2:#4e5575;--white:#dde1f0;
+  --mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif;--disp:'Bebas Neue',sans-serif;
+  --r:8px;--rs:5px;--hdr:54px;--tabs:48px;--tr:.2s ease;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--white);font-family:var(--sans);font-size:13px;line-height:1.55;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(35,40,64,.2)1px,transparent 1px),linear-gradient(90deg,rgba(35,40,64,.2)1px,transparent 1px);background-size:36px 36px;pointer-events:none;z-index:0}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:var(--bg2)}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* HDR */
+.hdr{height:var(--hdr);background:linear-gradient(90deg,#040608,#0e1520 45%,#040608);border-bottom:2px solid var(--gold);display:flex;align-items:center;padding:0 22px;gap:14px;position:sticky;top:0;z-index:300;box-shadow:0 4px 40px rgba(0,0,0,.8)}
+.hdr-icon{width:38px;height:38px;background:linear-gradient(135deg,#a8841e,var(--gold2));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;box-shadow:0 0 18px rgba(201,162,39,.3);animation:iPulse 3s ease-in-out infinite}
+@keyframes iPulse{0%,100%{box-shadow:0 0 18px rgba(201,162,39,.3)}50%{box-shadow:0 0 30px rgba(201,162,39,.55)}}
+.hdr-t{font-family:var(--disp);font-size:21px;letter-spacing:3px;color:var(--gold3);line-height:1}
+.hdr-s{font-size:9px;color:var(--slate2);letter-spacing:2px;text-transform:uppercase;margin-top:1px}
+.sbadge{background:rgba(0,180,216,.12);border:1px solid rgba(0,180,216,.3);color:var(--cyan2);border-radius:4px;padding:3px 10px;font-family:var(--mono);font-size:10px;letter-spacing:.5px;white-space:nowrap;margin-left:auto}
+
+/* TABS */
+.tbar{height:var(--tabs);background:linear-gradient(180deg,var(--bg2),transparent);border-bottom:1px solid var(--border2);position:sticky;top:var(--hdr);z-index:200;display:flex;align-items:flex-end;overflow-x:auto;padding:0 16px}
+.tbar::-webkit-scrollbar{height:3px}
+.tgrp-lbl{font-size:8px;letter-spacing:2px;color:var(--slate2);text-transform:uppercase;padding:0 6px 12px;white-space:nowrap;flex-shrink:0;align-self:flex-end}
+.tsep{width:1px;background:var(--border2);margin:0 4px 12px;height:24px;flex-shrink:0}
+.tab{font-family:var(--disp);font-size:12px;letter-spacing:1.5px;color:var(--slate2);padding:8px 16px 11px;cursor:pointer;border:none;background:transparent;position:relative;transition:color var(--tr);white-space:nowrap;user-select:none;flex-shrink:0}
+.tab::after{content:'';position:absolute;bottom:-1px;left:50%;right:50%;height:2px;border-radius:2px 2px 0 0;transition:left .22s,right .22s;background:var(--gold)}
+.tab:hover{color:var(--white)}
+.tab.active{color:var(--gold3)}.tab.active::after{left:0;right:0}
+.tab.tg::after{background:var(--green)}.tab.tg.active{color:var(--green2)}
+.tab.tc::after{background:var(--cyan)}.tab.tc.active{color:var(--cyan2)}
+.tab.tv::after{background:var(--violet)}.tab.tv.active{color:var(--violet2)}
+
+/* MAIN */
+.main{max-width:1600px;margin:0 auto;padding:24px;position:relative;z-index:1}
+.pg{display:none}.pg.active{display:block;animation:fadeUp .24s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* SECTIONS */
+.sec{font-family:var(--disp);font-size:13px;letter-spacing:2px;color:var(--gold);display:flex;align-items:center;gap:10px;margin:22px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.sec::before{content:'';width:4px;height:16px;background:currentColor;border-radius:2px;flex-shrink:0}
+.sec::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--border2),transparent)}
+.sec.g{color:var(--green2)}.sec.c{color:var(--cyan2)}.sec.v{color:var(--violet2)}.sec.a{color:var(--amber2)}
+
+/* CARDS */
+.card{background:linear-gradient(135deg,var(--bg2),var(--bg3));border:1px solid var(--border);border-radius:var(--r);padding:18px;margin-bottom:14px;transition:border-color var(--tr)}
+.card:hover{border-color:var(--border2)}
+.chd{font-family:var(--disp);font-size:12px;letter-spacing:1.5px;color:var(--gold2);margin-bottom:14px;display:flex;align-items:center;gap:7px}
+.chd::before{content:'◈';color:var(--gold);font-size:10px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+
+/* FILL WIDGET */
+.fill-wrap{background:linear-gradient(135deg,rgba(201,162,39,.09),rgba(201,162,39,.02));border:1px solid rgba(201,162,39,.28);border-radius:var(--r);padding:16px 18px;margin-bottom:16px}
+.fill-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.fill-title{font-family:var(--disp);font-size:14px;letter-spacing:2.5px;color:var(--gold3)}
+.fill-subtitle{font-size:9px;color:var(--slate2);letter-spacing:1.5px;text-transform:uppercase;margin-top:2px}
+.fill-num{font-family:var(--mono);font-size:36px;font-weight:700;color:var(--gold);line-height:1;text-align:right}
+.fill-num-sub{font-size:10px;color:var(--slate2);text-align:right;margin-top:1px}
+.fill-segs{display:flex;gap:2px;height:16px;border-radius:4px;overflow:hidden;margin-bottom:8px}
+.fill-seg{flex:1;border-radius:0;transition:background .15s}
+.fill-control{display:flex;align-items:center;gap:12px}
+.fill-control input[type=range]{flex:1;-webkit-appearance:none;appearance:none;height:5px;background:var(--border2);border-radius:3px;outline:none;cursor:pointer}
+.fill-control input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--gold);cursor:pointer;border:2px solid var(--bg);box-shadow:0 0 8px rgba(201,162,39,.4)}
+.fill-inp{width:72px;background:var(--bg2);border:1px solid var(--border2);color:var(--gold);font-family:var(--mono);font-size:15px;font-weight:700;padding:6px 8px;border-radius:var(--rs);outline:none;text-align:center;transition:border-color var(--tr)}
+.fill-inp:focus{border-color:var(--gold);box-shadow:0 0 0 2px var(--gold-dim)}
+.fill-impact{display:flex;gap:12px;margin-top:10px;flex-wrap:wrap}
+.fi-box{background:var(--bg4);border:1px solid var(--border);border-radius:var(--rs);padding:8px 12px;flex:1;min-width:110px;text-align:center}
+.fi-lbl{font-size:9px;letter-spacing:1.5px;color:var(--slate2);text-transform:uppercase}
+.fi-val{font-family:var(--mono);font-size:16px;font-weight:700;margin-top:2px}
+
+/* INPUTS */
+.fl{display:flex;align-items:center;gap:8px;margin-bottom:11px}
+.fl label{width:205px;flex-shrink:0;font-size:11px;color:var(--slate)}
+.inp{background:var(--bg2);border:1px solid var(--border2);color:var(--white);font-family:var(--mono);font-size:13px;padding:7px 10px;border-radius:var(--rs);outline:none;transition:border-color var(--tr),box-shadow var(--tr);width:100%}
+.inp:focus{border-color:var(--gold);box-shadow:0 0 0 2px var(--gold-dim)}
+.inp.fg:focus{border-color:var(--green);box-shadow:0 0 0 2px var(--green-dim)}
+.inp.fc:focus{border-color:var(--cyan);box-shadow:0 0 0 2px var(--cyan-dim)}
+select.inp option{background:var(--bg3)}
+.u{font-size:10px;color:var(--slate2);font-family:var(--mono);white-space:nowrap;min-width:32px}
+.bw-datalist-hint{font-size:9px;color:var(--slate2);margin-top:2px;letter-spacing:.3px}
+input[type=range]{-webkit-appearance:none;appearance:none;height:4px;background:var(--border2);border-radius:2px;outline:none;flex:1;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--gold2);cursor:pointer;border:2px solid var(--bg)}
+
+/* RESULT BOXES */
+.rg{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px;margin:12px 0}
+.rb{background:var(--bg4);border:1px solid var(--border);border-radius:var(--rs);padding:12px 10px;text-align:center;position:relative;overflow:hidden;transition:transform .15s,border-color .15s}
+.rb:hover{transform:translateY(-2px);border-color:var(--border2)}
+.rb::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.rb.gold::before{background:linear-gradient(90deg,var(--gold),var(--gold3))}
+.rb.green::before{background:linear-gradient(90deg,var(--green),var(--green2))}
+.rb.cyan::before{background:linear-gradient(90deg,var(--cyan),var(--cyan2))}
+.rb.violet::before{background:linear-gradient(90deg,var(--violet),var(--violet2))}
+.rb.amber::before{background:linear-gradient(90deg,var(--amber),var(--amber2))}
+.rb.red::before{background:linear-gradient(90deg,var(--red),var(--red2))}
+.rb-lbl{font-size:9px;letter-spacing:1.5px;color:var(--slate2);text-transform:uppercase;margin-bottom:5px}
+.rb-val{font-family:var(--mono);font-size:20px;font-weight:700;line-height:1.1}
+.rb-val.gv{color:var(--gold2)}.rb-val.grv{color:var(--green2)}.rb-val.cv{color:var(--cyan2)}.rb-val.vv{color:var(--violet2)}.rb-val.av{color:var(--amber2)}.rb-val.rv{color:var(--red2)}
+.rb-unit{font-size:10px;color:var(--slate2);font-family:var(--mono);margin-top:2px}
+.rb.motor-card{border:1px solid rgba(87,239,123,.3);background:linear-gradient(135deg,var(--bg4),rgba(45,198,83,.07))}
+.rb.motor-card::before{background:linear-gradient(90deg,var(--green),var(--cyan))}
+
+/* MOTOR SELECTOR PANEL */
+.motor-panel{background:linear-gradient(135deg,rgba(45,198,83,.06),rgba(0,180,216,.04));border:1px solid rgba(45,198,83,.2);border-radius:var(--r);padding:16px;margin:14px 0}
+.motor-panel-hd{font-family:var(--disp);font-size:14px;letter-spacing:2px;color:var(--green2);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.motor-sizes{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.ms-btn{font-family:var(--mono);font-size:11px;padding:5px 12px;border-radius:20px;border:1px solid var(--border2);background:var(--bg4);color:var(--slate);cursor:pointer;transition:all var(--tr);white-space:nowrap}
+.ms-btn:hover{border-color:var(--border2);color:var(--white)}
+.ms-btn.ms-ok{border-color:rgba(45,198,83,.5);background:rgba(45,198,83,.1);color:var(--green2)}
+.ms-btn.ms-sel{border-color:var(--green);background:rgba(45,198,83,.2);color:var(--green2);box-shadow:0 0 10px rgba(45,198,83,.25);font-weight:700}
+.ms-btn.ms-too-small{border-color:rgba(230,57,70,.3);color:var(--red2);text-decoration:line-through;opacity:.5}
+.motor-detail{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
+.motor-stat{background:var(--bg4);border:1px solid var(--border);border-radius:var(--rs);padding:8px 10px;text-align:center}
+.motor-stat-lbl{font-size:9px;letter-spacing:1px;color:var(--slate2);text-transform:uppercase}
+.motor-stat-val{font-family:var(--mono);font-size:14px;font-weight:700;margin-top:2px}
+
+/* TABLES */
+.dt{width:100%;border-collapse:collapse;font-size:12px}
+.dt th{background:rgba(201,162,39,.08);font-family:var(--disp);font-size:10px;letter-spacing:1.5px;color:var(--slate2);padding:8px 12px;text-align:left;border-bottom:1px solid var(--border2);text-transform:uppercase}
+.dt td{padding:7px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+.dt tr:last-child td{border-bottom:none}
+.dt tr:hover td{background:rgba(201,162,39,.025)}
+.dt .n{font-family:var(--mono);text-align:right}.dt .hi{color:var(--gold2);font-weight:700}
+.dt .ok{color:var(--green2)}.dt .warn{color:var(--amber2)}.dt .dim{color:var(--slate2)}
+.tscroll{overflow-x:auto}
+
+/* CEMA TABLE */
+.ct{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:14px}
+.ct th{background:rgba(201,162,39,.1);color:var(--gold2);font-family:var(--disp);font-size:10px;letter-spacing:1px;padding:8px 10px;border:1px solid var(--border2)}
+.ct td{padding:6px 10px;border:1px solid var(--border);text-align:center;font-family:var(--mono)}
+.ct tr:hover td{background:rgba(201,162,39,.04)}
+
+/* TRACE */
+.trace{background:var(--bg3);border:1px solid var(--border2);border-left:3px solid var(--gold);border-radius:0 6px 6px 0;padding:12px 16px;margin:12px 0;font-family:var(--mono);font-size:11px;color:var(--slate);line-height:1.9}
+.trace.g{border-left-color:var(--green)}.trace.c{border-left-color:var(--cyan)}
+.tr-r{display:flex;gap:10px;padding:1px 0;border-bottom:1px solid rgba(48,53,75,.4)}
+.tr-r:last-child{border:none}
+.tr-l{color:var(--slate2);font-size:10px;min-width:250px}
+.tr-e{color:var(--cyan2);flex:1}.tr-v{color:var(--gold2);font-weight:700;min-width:105px;text-align:right}
+
+/* FORMULA BOX */
+.fb{background:var(--bg3);border:1px solid var(--border2);border-left:3px solid var(--gold);border-radius:0 6px 6px 0;padding:10px 14px;margin:10px 0;font-family:var(--mono);font-size:11px;color:var(--cyan2);line-height:1.9}
+.fb-t{font-size:9px;letter-spacing:2px;color:var(--slate2);text-transform:uppercase;margin-bottom:5px;font-family:var(--sans)}
+.fb em{color:var(--gold3);font-style:normal;font-weight:600}
+
+/* MISC */
+.divr{height:1px;background:var(--border);margin:14px 0}
+.flex{display:flex;align-items:center;gap:10px}
+.fbb{display:flex;justify-content:space-between;align-items:center}
+.badge{display:inline-flex;align-items:center;padding:2px 10px;border-radius:20px;font-size:10px;font-weight:700;font-family:var(--mono)}
+.bok{background:var(--green-dim);color:var(--green2);border:1px solid rgba(45,198,83,.3)}
+.bwarn{background:rgba(224,124,36,.1);color:var(--amber2);border:1px solid rgba(224,124,36,.3)}
+.berr{background:var(--red-dim);color:var(--red2);border:1px solid rgba(230,57,70,.3)}
+.pbar{height:6px;background:var(--bg5);border-radius:3px;overflow:hidden;margin-top:5px}
+.pbar-fill{height:100%;border-radius:3px;transition:width .4s}
+.note{background:rgba(201,162,39,.05);border:1px solid rgba(201,162,39,.15);border-radius:5px;padding:10px 14px;font-size:11px;color:var(--slate);line-height:1.75;margin:10px 0}
+.note strong{color:var(--gold3)}
+canvas{border-radius:var(--r);display:block}
+
+/* SIZING DASHBOARD SPECIFIC */
+.sz-hero{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+.sz-hero .rb{padding:14px 12px}
+.sz-hero .rb-val{font-size:22px}
+.sz-flow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:14px 0}
+.sz-flow-step{background:var(--bg4);border:1px solid var(--border);border-radius:var(--rs);padding:8px 14px;text-align:center;min-width:90px}
+.sz-flow-step .sz-fl{font-size:9px;color:var(--slate2);letter-spacing:1px;text-transform:uppercase}
+.sz-flow-step .sz-fv{font-family:var(--mono);font-size:15px;font-weight:700;margin-top:3px}
+.sz-flow-arrow{color:var(--gold);font-size:18px;font-weight:700}
+.wt-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.wt-item{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:var(--bg4);border:1px solid var(--border);border-radius:var(--rs);font-size:11px}
+.wt-item span:first-child{color:var(--slate)}
+.wt-item span:last-child{font-family:var(--mono);color:var(--gold2);font-weight:600}
+
+@media(max-width:960px){.g2,.g3,.sz-hero{grid-template-columns:1fr}.fl{flex-wrap:wrap}.fl label{width:100%}}
+</style>
+</head>
+<body>
+
+<!-- ═══ HEADER ═══ -->
+<div class="hdr">
+  <div class="hdr-icon">🏗️</div>
+  <div>
+    <div class="hdr-t">BELT CONVEYOR ENGINEERING SUITE</div>
+    <div class="hdr-s">CEMA 7th Ed. · IS 11592 · Capacity · Power · Motor Selection · Sizing</div>
+  </div>
+  <span class="sbadge">CEMA · IS 11592</span>
+</div>
+
+<!-- ═══ TABS ═══ -->
+<div class="tbar">
+  <span class="tgrp-lbl">BELT CONVEYOR</span>
+  <button class="tab active" data-pg="capacity">📐 Capacity</button>
+  <button class="tab" data-pg="power">⚡ Power &amp; Motor</button>
+  <div class="tsep"></div>
+  <span class="tgrp-lbl">DESIGN</span>
+  <button class="tab tg" data-pg="sizing">🔧 Belt Sizing</button>
+  <div class="tsep"></div>
+  <button class="tab tv" data-pg="ref">📖 CEMA Ref</button>
+</div>
+
+<div class="main">
+
+<!-- ══════════════════════════════════════════════════
+  TAB 1 — BELT CAPACITY
+══════════════════════════════════════════════════ -->
+<div class="pg active" id="pg-capacity">
+  <div class="sec">Belt Capacity — CEMA Standard</div>
+
+  <!-- FILL PERCENTAGE WIDGET -->
+  <div class="fill-wrap">
+    <div class="fill-top">
+      <div>
+        <div class="fill-title">⬛ BELT FILLING PERCENTAGE</div>
+        <div class="fill-subtitle">Fraction of theoretical cross-section area actually filled by material</div>
+      </div>
+      <div>
+        <div class="fill-num" id="fill-pct-display">85%</div>
+        <div class="fill-num-sub">fill factor</div>
+      </div>
+    </div>
+    <div class="fill-segs" id="fill-segs"></div>
+    <div class="fill-control">
+      <input type="range" id="fill-slider" min="10" max="100" value="85" oninput="syncFill('slider')">
+      <input type="number" class="fill-inp" id="fill-inp" value="85" min="10" max="100" step="1" oninput="syncFill('inp')">
+      <span class="u">%</span>
+    </div>
+    <div class="fill-impact">
+      <div class="fi-box"><div class="fi-lbl">Theoretical Q</div><div class="fi-val" id="fi-theo" style="color:var(--slate)">— tph</div></div>
+      <div class="fi-box"><div class="fi-lbl">Effective Q (at fill%)</div><div class="fi-val" id="fi-eff" style="color:var(--gold2)">— tph</div></div>
+      <div class="fi-box"><div class="fi-lbl">Material kg/m</div><div class="fi-val" id="fi-kgm" style="color:var(--cyan2)">— kg/m</div></div>
+      <div class="fi-box"><div class="fi-lbl">Cross-Sect Area</div><div class="fi-val" id="fi-area" style="color:var(--amber2)">— cm²</div></div>
+      <div class="fi-box"><div class="fi-lbl">Fill Status</div><div class="fi-val" id="fi-status">—</div></div>
+    </div>
+  </div>
+
+  <div class="g2">
+    <!-- INPUTS -->
+    <div class="card">
+      <div class="chd">Input Parameters</div>
+      <div class="fl">
+        <label>Belt Width <span style="color:var(--slate2);font-size:9px">(type any mm)</span></label>
+        <div style="flex:1">
+          <input type="number" class="inp" id="c-bw" value="800" min="300" max="3000" step="25" list="bw-list" oninput="calcCapacity()">
+          <datalist id="bw-list">
+            <option value="400"><option value="500"><option value="600"><option value="650">
+            <option value="750"><option value="800"><option value="900"><option value="1000">
+            <option value="1050"><option value="1200"><option value="1350"><option value="1400">
+            <option value="1500"><option value="1600"><option value="1800"><option value="2000">
+          </datalist>
+          <div class="bw-datalist-hint">Standard: 400·500·600·650·750·800·900·1000·1050·1200·1350·1400·1500·1600·1800·2000 mm</div>
+        </div>
+        <span class="u">mm</span>
+      </div>
+      <div class="fl">
+        <label>Troughing Angle β</label>
+        <select class="inp" id="c-beta" onchange="calcCapacity()">
+          <option value="0">0° (Flat)</option><option value="10">10°</option><option value="15">15°</option>
+          <option value="20">20°</option><option value="25">25°</option><option value="30">30°</option>
+          <option value="35" selected>35°</option><option value="40">40°</option><option value="45">45°</option>
+        </select>
+      </div>
+      <div class="fl">
+        <label>Surcharge Angle α</label>
+        <select class="inp" id="c-alpha" onchange="calcCapacity()">
+          <option value="0">0°</option><option value="5">5°</option><option value="10">10°</option>
+          <option value="15">15°</option><option value="20">20°</option><option value="25" selected>25°</option><option value="30">30°</option>
+        </select>
+      </div>
+      <div class="fl">
+        <label>Belt Speed V</label>
+        <input type="number" class="inp" id="c-vel" value="1.5" step="0.1" min="0.1" max="10" oninput="calcCapacity()">
+        <span class="u">m/s</span>
+      </div>
+      <div class="fl">
+        <label>Bulk Density ρ</label>
+        <input type="number" class="inp" id="c-rho" value="1.36" step="0.01" min="0.1" max="5" oninput="calcCapacity()">
+        <span class="u">t/m³</span>
+      </div>
+      <div class="fl">
+        <label>Conveyor Inclination δ</label>
+        <input type="number" class="inp" id="c-incl" value="0" step="0.5" min="-30" max="30" oninput="calcCapacity()">
+        <span class="u">°</span>
+      </div>
+      <div class="divr"></div>
+      <div style="font-size:10px;color:var(--slate2)">
+        <strong style="color:var(--gold2)">CEMA Edge Clearance:</strong> c = 0.055 × b + 2.286 cm → <span id="c-show" style="color:var(--gold2);font-family:var(--mono)">—</span> mm
+        <br><strong style="color:var(--gold2)">Center Roll L:</strong> CEMA standard table or ≈0.455×b' → <span id="c-l-show" style="color:var(--cyan2);font-family:var(--mono)">—</span> cm
+      </div>
+    </div>
+
+    <!-- GEOMETRY + CANVAS -->
+    <div class="card">
+      <div class="chd">Cross-Section Geometry</div>
+      <canvas id="cap-canvas" width="430" height="220" style="background:var(--bg4);border:1px solid var(--border);border-radius:6px;width:100%;margin-bottom:12px"></canvas>
+      <div class="rg" id="geom-res" style="grid-template-columns:repeat(3,1fr)"></div>
+    </div>
+  </div>
+
+  <div class="sec">Capacity Results</div>
+  <div class="card"><div class="rg" id="cap-res"></div></div>
+
+  <div class="sec">Step-by-Step Calculation Trace</div>
+  <div class="card"><div class="trace" id="cap-trace"></div></div>
+
+  <div class="sec">Capacity Matrix — Speed × Belt Width (tph, at fill <span id="fill-pct-matrix">85</span>%)</div>
+  <div class="card tscroll"><table class="dt" id="cap-matrix"></table></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+  TAB 2 — POWER & MOTOR
+══════════════════════════════════════════════════ -->
+<div class="pg" id="pg-power">
+  <div class="sec">Express Conveyor Power — IS 11592</div>
+  <div class="g3">
+    <div class="card">
+      <div class="chd">Conveyor Geometry</div>
+      <div class="fl"><label>Conveyor Length L</label>
+        <input type="number" class="inp" id="p-len" value="200" oninput="calcPower()"><span class="u">m</span></div>
+      <div class="fl"><label>Lift H</label>
+        <input type="number" class="inp" id="p-lift" value="10" oninput="calcPower()"><span class="u">m</span></div>
+      <div class="fl"><label>Inclination δ</label>
+        <input type="number" class="inp" id="p-incl" value="3" oninput="calcPower()"><span class="u">°</span></div>
+      <div class="fl"><label>Belt Width</label>
+        <input type="number" class="inp" id="p-bw" value="800" min="300" max="3000" step="25" list="bw-list" oninput="calcPower()"><span class="u">mm</span></div>
+    </div>
+    <div class="card">
+      <div class="chd">Material &amp; Capacity</div>
+      <div class="fl"><label>Design Capacity</label>
+        <input type="number" class="inp" id="p-cap" value="500" oninput="calcPower()"><span class="u">tph</span></div>
+      <div class="fl"><label>Belt Speed</label>
+        <input type="number" class="inp" id="p-vel" value="1.5" step="0.1" oninput="calcPower()"><span class="u">m/s</span></div>
+      <div class="fl"><label>Bulk Density ρ</label>
+        <input type="number" class="inp" id="p-rho" value="1.36" step="0.01" oninput="calcPower()"><span class="u">t/m³</span></div>
+      <div class="fl"><label>Belt Mass / m</label>
+        <input type="number" class="inp" id="p-mb" value="12" oninput="calcPower()"><span class="u">kg/m</span></div>
+    </div>
+    <div class="card">
+      <div class="chd">Installation Params</div>
+      <div class="fl"><label>Carry Idler Spacing</label>
+        <input type="number" class="inp" id="p-isp-c" value="1.2" step="0.1" oninput="calcPower()"><span class="u">m</span></div>
+      <div class="fl"><label>Return Idler Spacing</label>
+        <input type="number" class="inp" id="p-isp-r" value="2.4" step="0.1" oninput="calcPower()"><span class="u">m</span></div>
+      <div class="fl"><label>Carry Idler OD</label>
+        <select class="inp" id="p-idler-c" onchange="calcPower()">
+          <option value="89">89</option><option value="102">102</option><option value="127" selected>127</option>
+          <option value="139">139</option><option value="152">152</option><option value="159">159</option>
+        </select><span class="u">mm</span>
+      </div>
+      <div class="fl"><label>Return Idler OD</label>
+        <select class="inp" id="p-idler-r" onchange="calcPower()">
+          <option value="89">89</option><option value="102">102</option><option value="127" selected>127</option>
+          <option value="139">139</option>
+        </select><span class="u">mm</span>
+      </div>
+      <div class="fl"><label>Takeup Type</label>
+        <select class="inp" id="p-takeup" onchange="calcPower()">
+          <option value="screw">Screw</option><option value="gravity" selected>Gravity</option>
+        </select>
+      </div>
+      <div class="fl"><label>Feed Points</label>
+        <input type="number" class="inp" id="p-feeds" value="1" min="0" oninput="calcPower()"></div>
+      <div class="fl"><label>Continuous Skirting</label>
+        <select class="inp" id="p-skirt" onchange="calcPower()">
+          <option value="no" selected>No</option><option value="yes">Yes</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">Power Results</div>
+  <div class="card"><div class="rg" id="pwr-res"></div></div>
+
+  <!-- MOTOR SIZE SELECTION PANEL -->
+  <div class="motor-panel" id="motor-panel">
+    <div class="motor-panel-hd">⚡ MOTOR SIZE SELECTION — IEC Standard Ratings</div>
+    <div style="font-size:11px;color:var(--slate);margin-bottom:10px">
+      Calculated motor power: <span id="mp-calc" style="color:var(--gold2);font-family:var(--mono);font-weight:700;font-size:14px">—</span> kW&nbsp;&nbsp;·&nbsp;&nbsp;
+      Suggested size: <span id="mp-sugg" style="color:var(--green2);font-family:var(--mono);font-weight:700;font-size:14px">—</span> kW&nbsp;&nbsp;·&nbsp;&nbsp;
+      Margin on selected: <span id="mp-margin" style="color:var(--cyan2);font-family:var(--mono);font-weight:700">—</span>
+    </div>
+    <div class="motor-sizes" id="motor-sizes"></div>
+    <div class="motor-detail" id="motor-detail"></div>
+  </div>
+
+  <div class="note" style="margin-top:14px">
+    <strong>IS 11592 Assumptions:</strong> 3-Roll Troughed Carry Idlers · Single Head Drive (wrap=210°) · f=5m skirt per feed point · Negative slopes treated as zero · Gearbox η=95% · +10% motor margin minimum · Fluid coupling recommended &gt;30kW
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+  TAB 3 — BELT CONVEYOR SIZING (NEW — from Excel)
+══════════════════════════════════════════════════ -->
+<div class="pg" id="pg-sizing">
+  <div class="sec g">Belt Conveyor Basic Sizing — Power &amp; Weight Estimation</div>
+
+  <!-- HERO RESULTS -->
+  <div class="sz-hero" id="sz-hero">
+    <div class="rb green"><div class="rb-lbl">Installed Power</div><div class="rb-val grv" id="sz-h-pwr">—</div><div class="rb-unit">kW</div></div>
+    <div class="rb gold"><div class="rb-lbl">Belt Width</div><div class="rb-val gv" id="sz-h-bw">—</div><div class="rb-unit">mm</div></div>
+    <div class="rb cyan"><div class="rb-lbl">Actual Fill Ratio</div><div class="rb-val cv" id="sz-h-fill">—</div><div class="rb-unit">%</div></div>
+    <div class="rb amber"><div class="rb-lbl">Conveyor Weight</div><div class="rb-val av" id="sz-h-wt">—</div><div class="rb-unit">t</div></div>
+  </div>
+
+  <div class="g2">
+    <!-- LEFT: INPUTS -->
+    <div>
+      <div class="card">
+        <div class="chd" style="color:var(--green2)">Material &amp; Capacity</div>
+        <div class="fl"><label>Capacity (Nominal)</label>
+          <input type="number" class="inp fg" id="sz-cap" value="1000" min="1" oninput="calcSizing()"><span class="u">tph</span></div>
+        <div class="fl"><label>Bulk Density</label>
+          <input type="number" class="inp fg" id="sz-den" value="1.3" step="0.01" min="0.1" max="5" oninput="calcSizing()"><span class="u">t/m³</span></div>
+        <div class="fl"><label>Filling Ratio (Standard)</label>
+          <input type="number" class="inp fg" id="sz-fill" value="75" min="10" max="100" step="1" oninput="calcSizing()"><span class="u">%</span></div>
+      </div>
+      <div class="card">
+        <div class="chd" style="color:var(--green2)">Conveyor Geometry</div>
+        <div class="fl"><label>Horizontal Length</label>
+          <input type="number" class="inp fg" id="sz-hl" value="3.5" step="0.1" min="0.5" oninput="calcSizing()"><span class="u">m</span></div>
+        <div class="fl"><label>Elevation (Vertical)</label>
+          <input type="number" class="inp fg" id="sz-el" value="0" step="0.1" min="0" oninput="calcSizing()"><span class="u">m</span></div>
+        <div class="fl"><label>Conveying Speed</label>
+          <input type="number" class="inp fg" id="sz-spd" value="0.5" step="0.1" min="0.1" max="6" oninput="calcSizing()"><span class="u">m/s</span></div>
+        <div class="fl"><label>Belt Width</label>
+          <select class="inp fg" id="sz-bw" onchange="calcSizing()">
+            <option value="650">650 mm</option><option value="800">800 mm</option>
+            <option value="1000">1000 mm</option><option value="1200">1200 mm</option>
+            <option value="1400">1400 mm</option><option value="1600">1600 mm</option>
+            <option value="1800">1800 mm</option><option value="2000" selected>2000 mm</option>
+          </select><span class="u">mm</span>
+        </div>
+        <div class="divr"></div>
+        <div style="font-size:10px;color:var(--slate2)">
+          <strong style="color:var(--gold2)">Inclination:</strong> <span id="sz-incl-show" style="color:var(--gold2);font-family:var(--mono)">0.0°</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="chd" style="color:var(--green2)">Structure Lengths</div>
+        <div class="fl"><label>Simple Walkway</label>
+          <input type="number" class="inp fg" id="sz-swalk" value="0" step="0.5" min="0" oninput="calcSizing()"><span class="u">m</span></div>
+        <div class="fl"><label>Double Walkway</label>
+          <input type="number" class="inp fg" id="sz-dwalk" value="0" step="0.5" min="0" oninput="calcSizing()"><span class="u">m</span></div>
+        <div class="fl"><label>Housing</label>
+          <input type="number" class="inp fg" id="sz-housing" value="0" step="0.5" min="0" oninput="calcSizing()"><span class="u">m</span></div>
+        <div class="fl"><label>Covering</label>
+          <input type="number" class="inp fg" id="sz-covering" value="2" step="0.5" min="0" oninput="calcSizing()"><span class="u">m</span></div>
+        <div class="fl"><label>Drive Efficiency</label>
+          <input type="number" class="inp fg" id="sz-eff" value="0.85" step="0.01" min="0.5" max="1" oninput="calcSizing()"></div>
+        <div class="fl"><label>Guiding/Cleaning Power</label>
+          <input type="number" class="inp fg" id="sz-pf" value="1.5" step="0.1" min="0" oninput="calcSizing()"><span class="u">kW</span></div>
+      </div>
+    </div>
+
+    <!-- RIGHT: RESULTS -->
+    <div>
+      <div class="card">
+        <div class="chd" style="color:var(--cyan2)">Volumetric Flow &amp; Belt Selection</div>
+        <div class="sz-flow" id="sz-flow"></div>
+        <div class="rg" id="sz-vol-res" style="grid-template-columns:repeat(2,1fr)"></div>
+      </div>
+      <div class="card">
+        <div class="chd" style="color:var(--amber2)">Power Estimation</div>
+        <div class="rg" id="sz-pwr-res" style="grid-template-columns:repeat(2,1fr)"></div>
+      </div>
+      <div class="card">
+        <div class="chd" style="color:var(--gold2)">Conveyor Weight Estimation</div>
+        <div class="wt-grid" id="sz-wt-grid"></div>
+        <div class="divr"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0">
+          <span style="font-family:var(--disp);font-size:14px;letter-spacing:2px;color:var(--gold3)">TOTAL CONVEYOR WEIGHT</span>
+          <span style="font-family:var(--mono);font-size:22px;font-weight:700;color:var(--gold2)" id="sz-wt-total">— t</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec g">Step-by-Step Calculation Trace</div>
+  <div class="card"><div class="trace g" id="sz-trace"></div></div>
+
+  <div class="sec g">C-Factor Lookup Table (Majoration Factor vs. Horizontal Length)</div>
+  <div class="card tscroll"><table class="dt" id="sz-cf-tbl"></table></div>
+
+  <div class="sec g">Belt Width — Max Flow at 1 m/s (100% Fill)</div>
+  <div class="card tscroll"><table class="dt" id="sz-bw-tbl"></table></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+  TAB 4 — CEMA REFERENCE
+══════════════════════════════════════════════════ -->
+<div class="pg" id="pg-ref">
+  <div class="sec v">CEMA 7th Edition — Standard Tables &amp; Formulas</div>
+  <div class="g2">
+    <div class="card">
+      <div class="chd" style="color:var(--violet2)">Cross-Section Formulas</div>
+      <div class="fb"><div class="fb-t">Edge Clearance</div><em>c = 0.055 × b + 2.286 (cm)</em></div>
+      <div class="fb"><div class="fb-t">3-Roll Equal Troughed Geometry</div>
+        <em>b' = b − 2c  [active width]</em><br>
+        <em>L = CEMA std table or ≈ 0.455 × b'  [center roll length]</em><br>
+        <em>m = (b'−L)/2  [wing slant length]</em><br>
+        <em>I = m·sin(β) , f = m·cos(β)</em><br>
+        <em>L₁ = L + 2f  [surcharge chord]</em>
+      </div>
+      <div class="fb"><div class="fb-t">Areas &amp; Capacity</div>
+        <em>A₁ = (L+L₁)/2 × I  [trapezoid]</em><br>
+        <em>r = (L₁/2)/sin(α)  [arc radius]</em><br>
+        <em>A₂ = r²/2×(2α−sin2α)  [segment]</em><br>
+        <em>Q = A×V×ρ×3600  [tph, A in m²]</em><br>
+        <em>Q_eff = Q × fill%/100</em>
+      </div>
+    </div>
+    <div class="card">
+      <div class="chd" style="color:var(--violet2)">Power &amp; Motor Formulas</div>
+      <div class="fb"><div class="fb-t">IS 11592 — Main Friction</div>
+        <em>F_H = f·C·L·g·(mRU+mRO+mB·cosδ+mG·cosδ)</em><br><em>f=0.020 standard</em></div>
+      <div class="fb"><div class="fb-t">Gradient &amp; Total</div>
+        <em>F_St = (mG+mB)·g·H</em><br><em>P_eff = F_total × V / 1000  [kW]</em><br>
+        <em>P_motor = P_eff / η × 1.1  [η=0.95]</em></div>
+      <div class="fb"><div class="fb-t">Motor Selection (IEC)</div>
+        <em>Select next standard size ≥ P_motor</em><br>
+        <em>Standard sizes: 0.37·0.55·0.75·1.1·1.5·2.2·3·4·5.5·7.5·11·15·18.5·22·30·37·45·55·75·90·110·132·160·200·250·315·400·500 kW</em><br>
+        <em>Service factor ≥ 1.0; recommend 1.15–1.25 for conveyors</em></div>
+    </div>
+  </div>
+  <div class="g2">
+    <div class="card">
+      <div class="chd" style="color:var(--violet2)">Recommended Belt Speeds (m/s)</div>
+      <table class="ct"><thead><tr><th>Width (mm)</th><th>Fine/Free</th><th>Medium Lump</th><th>Heavy/Abrasive</th></tr></thead>
+      <tbody>
+        <tr><td>400–500</td><td class="ok">1.0–2.0</td><td style="color:var(--gold2)">0.75–1.5</td><td class="warn">0.6–1.2</td></tr>
+        <tr><td>600–800</td><td class="ok">1.5–2.5</td><td style="color:var(--gold2)">1.0–2.0</td><td class="warn">0.75–1.5</td></tr>
+        <tr><td>900–1000</td><td class="ok">2.0–3.0</td><td style="color:var(--gold2)">1.5–2.5</td><td class="warn">1.0–2.0</td></tr>
+        <tr><td>1050–1200</td><td class="ok">2.5–3.5</td><td style="color:var(--gold2)">2.0–3.0</td><td class="warn">1.5–2.5</td></tr>
+        <tr><td>1350–1500</td><td class="ok">3.0–4.0</td><td style="color:var(--gold2)">2.5–3.5</td><td class="warn">2.0–3.0</td></tr>
+        <tr><td>1600–2000</td><td class="ok">3.5–5.0</td><td style="color:var(--gold2)">3.0–4.0</td><td class="warn">2.5–3.5</td></tr>
+      </tbody></table>
+    </div>
+    <div class="card">
+      <div class="chd" style="color:var(--violet2)">Idler Spacing (m)</div>
+      <table class="ct"><thead><tr><th>Width</th><th>&lt;800 kg/m³</th><th>800–1600</th><th>&gt;1600</th></tr></thead>
+      <tbody>
+        <tr><td>500</td><td>1.5</td><td>1.2</td><td>1.0</td></tr>
+        <tr><td>800</td><td>1.5</td><td>1.2</td><td>1.0</td></tr>
+        <tr><td>1000</td><td>1.5</td><td>1.2</td><td>0.9</td></tr>
+        <tr><td>1200</td><td>1.5</td><td>1.2</td><td>0.9</td></tr>
+        <tr><td>1400+</td><td>1.35</td><td>1.05</td><td>0.9</td></tr>
+      </tbody></table>
+    </div>
+  </div>
+  <div class="g2">
+    <div class="card">
+      <div class="chd" style="color:var(--violet2)">Bearing Life (ABMA)</div>
+      <div class="fb"><div class="fb-t">L10 Ball Bearing</div>
+        <em>L₁₀ = (C/P)³ × 10⁶ rev&nbsp;&nbsp;→&nbsp;&nbsp;hrs = L₁₀×10⁶ / (60×RPM)</em><br>
+        <em>Lmn (99% reliability) = 0.21 × L₁₀ [hrs]</em><br>
+        <em>RPM = V×60000/(π×D)  [V m/s, D mm]</em><br>
+        <em>C values: 6203=5.1 · 6204=9.95 · 6205=14.0 · 6206=19.5 · 6207=25.5 · 6208=29.0 · 6209=32.5 kN</em>
+      </div>
+    </div>
+    <div class="card">
+      <div class="chd" style="color:var(--violet2)">Excel Sizing Formulas</div>
+      <div class="fb"><div class="fb-t">No-load Power Pv</div>
+        <em>Pv = 9.81 × C / 1000 × Lw × S × HL</em></div>
+      <div class="fb"><div class="fb-t">Translation Power Pc</div>
+        <em>Pc = 2.73 × C / 1000 × FM × HL</em></div>
+      <div class="fb"><div class="fb-t">Elevation Power Pd</div>
+        <em>Pd = 2.73 / 1000 × FM × H</em></div>
+      <div class="fb"><div class="fb-t">Absorbed Power</div>
+        <em>Pr = (Pv + Pc + Pd + Pf) / η</em></div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<script>
+// ════════════════════════════════════════════════════════════
+//  CONSTANTS & GLOBALS
+// ════════════════════════════════════════════════════════════
+const DEG = Math.PI / 180;
+const G   = 9.81;
+
+// IEC standard motor sizes (kW)
+const IEC_MOTORS = [0.37,0.55,0.75,1.1,1.5,2.2,3,4,5.5,7.5,11,15,18.5,22,30,37,45,55,75,90,110,132,160,200,250,315,400,500];
+let selMotorKW = null;
+
+// CEMA standard center roll lengths (cm keyed by belt width cm)
+const CEMA_L = {
+  30:12.7,35:14.0,40:15.24,45:17.0,50:18.0,55:19.0,60:19.68,65:21.59,
+  70:23.0,75:25.0,80:30.315,85:30.0,90:30.48,95:30.48,100:30.48,
+  105:35.56,110:35.56,115:35.56,120:35.56,130:40.64,135:40.64,
+  140:40.64,150:45.72,160:45.72,180:50.8,200:55.88
+};
+function getLCenter(b_cm){
+  const key = Math.round(b_cm);
+  if(CEMA_L[key]) return CEMA_L[key];
+  const keys = Object.keys(CEMA_L).map(Number).sort((a,b)=>a-b);
+  const lo = keys.filter(k=>k<=key).pop() || keys[0];
+  const hi = keys.filter(k=>k>=key).shift() || keys[keys.length-1];
+  if(lo===hi) return CEMA_L[lo];
+  const t = (key-lo)/(hi-lo);
+  return CEMA_L[lo] + t*(CEMA_L[hi]-CEMA_L[lo]);
+}
+
+// Fill state
+let fillPct = 85;
+
+// ════════════════════════════════════════════════════════════
+//  FILL PERCENTAGE CONTROL
+// ════════════════════════════════════════════════════════════
+function syncFill(src){
+  const sl = document.getElementById('fill-slider');
+  const ip = document.getElementById('fill-inp');
+  if(src==='slider') { fillPct = +sl.value; ip.value = fillPct; }
+  else               { fillPct = Math.max(10, Math.min(100, +ip.value||10)); sl.value = fillPct; ip.value = fillPct; }
+  updateFillWidget();
+  calcCapacity();
+}
+
+function updateFillWidget(){
+  document.getElementById('fill-pct-display').textContent = fillPct + '%';
+  document.getElementById('fill-pct-matrix').textContent = fillPct;
+  const segs = document.getElementById('fill-segs');
+  const n = 20, active = Math.round(fillPct / 100 * n);
+  segs.innerHTML = '';
+  for(let i=0;i<n;i++){
+    const s = document.createElement('div');
+    s.className='fill-seg';
+    if(i<active){
+      const pct = i/n;
+      const col = fillPct<50 ? `hsl(${40+pct*20},85%,55%)` : fillPct<75 ? `hsl(${50+pct*15},85%,55%)` : `hsl(${55+pct*10},85%,55%)`;
+      s.style.background = col;
+    } else {
+      s.style.background = 'rgba(42,51,72,.6)';
+    }
+    segs.appendChild(s);
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+//  BELT CAPACITY
+// ════════════════════════════════════════════════════════════
+function getXSec(bw_mm, beta_deg, alpha_deg){
+  const b = bw_mm/10;
+  const beta=beta_deg*DEG, alpha=alpha_deg*DEG;
+  const c = 0.055*b + 2.286;
+  const bp = b - 2*c;
+  const L = getLCenter(b);
+  const m  = (bp-L)/2;
+  const I  = m*Math.sin(beta);
+  const f  = m*Math.cos(beta);
+  const L1 = L+2*f;
+  const r  = alpha>0 ? (L1/2)/Math.sin(alpha) : 1e9;
+  const A1 = (L+L1)/2*I;
+  const th = 2*alpha;
+  const A2 = alpha>0 ? (r*r/2)*(th-Math.sin(th)) : 0;
+  const A_cm2 = A1+A2;
+  const A_m2  = A_cm2/10000;
+  const sag = alpha>0 ? r-Math.sqrt(Math.max(0,r*r-(L1/2)*(L1/2))) : 0;
+  const d = I+sag;
+  return {b,c,bp,L,m,I,f,L1,r,A1,A2,A_cm2,A_m2,d};
+}
+
+function calcCapacity(){
+  const bw   = +document.getElementById('c-bw').value   || 800;
+  const beta  = +document.getElementById('c-beta').value || 35;
+  const alpha = +document.getElementById('c-alpha').value|| 25;
+  const V     = +document.getElementById('c-vel').value  || 1.5;
+  const rho   = +document.getElementById('c-rho').value  || 1.36;
+  const incl  = +document.getElementById('c-incl').value || 0;
+  const fill  = fillPct/100;
+
+  const xsec = getXSec(bw, beta, alpha);
+  const Kf   = Math.cos(incl*DEG);
+  const Q_theo = xsec.A_m2*V*rho*3600;
+  const Q_eff  = Q_theo*fill*Kf;
+  const Q_level= Q_theo*fill;
+  const mG_eff = Q_level/(3.6*V);
+
+  // Fill widget impact display
+  document.getElementById('fi-theo').textContent = Q_theo.toFixed(1)+' tph';
+  document.getElementById('fi-eff').textContent  = Q_level.toFixed(1)+' tph';
+  document.getElementById('fi-kgm').textContent  = mG_eff.toFixed(2)+' kg/m';
+  document.getElementById('fi-area').textContent = (xsec.A_m2*fill*10000).toFixed(2)+' cm²';
+  document.getElementById('fi-status').innerHTML = `<span class="badge ${fillPct<=70?'bok':fillPct<=85?'':fillPct<=95?'bwarn':'berr'}">${fillPct<=70?'⬛ LOW':fillPct<=85?'✔ GOOD':fillPct<=95?'▲ HIGH':'⚠ OVER'}</span>`;
+
+  document.getElementById('c-show').textContent = (xsec.c*10).toFixed(1)+' mm';
+  document.getElementById('c-l-show').textContent = xsec.L.toFixed(3)+' cm';
+
+  // Geometry results
+  const gItems = [
+    {l:'Edge Dist c',v:xsec.c.toFixed(3),u:'cm',t:'gold'},
+    {l:'Active b\'',v:xsec.bp.toFixed(3),u:'cm',t:'gold'},
+    {l:'Center Roll L',v:xsec.L.toFixed(3),u:'cm',t:'cyan'},
+    {l:'Wing Slant m',v:xsec.m.toFixed(4),u:'cm',t:'cyan'},
+    {l:'Trough Height I',v:xsec.I.toFixed(4),u:'cm',t:'amber'},
+    {l:'Horiz. Proj f',v:xsec.f.toFixed(4),u:'cm',t:'amber'},
+    {l:'Chord L₁',v:xsec.L1.toFixed(4),u:'cm',t:'gold'},
+    {l:'Arc Radius r',v:alpha>0?xsec.r.toFixed(3):'∞',u:'cm',t:'cyan'},
+    {l:'Material d',v:xsec.d.toFixed(4),u:'cm',t:'green'},
+  ];
+  document.getElementById('geom-res').innerHTML = gItems.map(g=>`
+    <div class="rb ${g.t}"><div class="rb-lbl">${g.l}</div>
+    <div class="rb-val ${g.t==='gold'?'gv':g.t==='green'?'grv':g.t==='amber'?'av':'cv'}" style="font-size:13px">${g.v}</div>
+    <div class="rb-unit">${g.u}</div></div>`).join('');
+
+  // Main capacity
+  document.getElementById('cap-res').innerHTML = `
+    <div class="rb gold"><div class="rb-lbl">Theo. Capacity (100%)</div><div class="rb-val gv">${Q_theo.toFixed(1)}</div><div class="rb-unit">tph</div></div>
+    <div class="rb green"><div class="rb-lbl">Effective Q (${fillPct}% fill)</div><div class="rb-val grv">${Q_level.toFixed(1)}</div><div class="rb-unit">tph</div></div>
+    <div class="rb green"><div class="rb-lbl">Effective Q (${fillPct}%, ${incl}° slope)</div><div class="rb-val grv">${Q_eff.toFixed(1)}</div><div class="rb-unit">tph</div></div>
+    <div class="rb cyan"><div class="rb-lbl">Cross-Sect (100%)</div><div class="rb-val cv">${xsec.A_cm2.toFixed(2)}</div><div class="rb-unit">cm²</div></div>
+    <div class="rb amber"><div class="rb-lbl">Eff. Area (${fillPct}%)</div><div class="rb-val av">${(xsec.A_m2*fill*10000).toFixed(2)}</div><div class="rb-unit">cm²</div></div>
+    <div class="rb cyan"><div class="rb-lbl">Material kg/m</div><div class="rb-val cv">${mG_eff.toFixed(2)}</div><div class="rb-unit">kg/m</div></div>`;
+
+  // Trace
+  document.getElementById('cap-trace').innerHTML = `
+    <div class="tr-r"><span class="tr-l">Edge clearance  c = 0.055×b + 2.286</span><span class="tr-e">= 0.055×${(bw/10)} + 2.286</span><span class="tr-v">${xsec.c.toFixed(4)} cm</span></div>
+    <div class="tr-r"><span class="tr-l">Active width  b' = b − 2c</span><span class="tr-e">= ${(bw/10)} − 2×${xsec.c.toFixed(4)}</span><span class="tr-v">${xsec.bp.toFixed(4)} cm</span></div>
+    <div class="tr-r"><span class="tr-l">Center roll L  (CEMA std table)</span><span class="tr-e">for b=${(bw/10)}cm</span><span class="tr-v">${xsec.L.toFixed(4)} cm</span></div>
+    <div class="tr-r"><span class="tr-l">Wing slant  m = (b'−L)/2</span><span class="tr-e">= (${xsec.bp.toFixed(4)}−${xsec.L.toFixed(4)})/2</span><span class="tr-v">${xsec.m.toFixed(4)} cm</span></div>
+    <div class="tr-r"><span class="tr-l">Trough height  I = m·sin(β)</span><span class="tr-e">= ${xsec.m.toFixed(4)}×sin(${beta}°)</span><span class="tr-v">${xsec.I.toFixed(4)} cm</span></div>
+    <div class="tr-r"><span class="tr-l">Horiz. proj  f = m·cos(β)</span><span class="tr-e">= ${xsec.m.toFixed(4)}×cos(${beta}°)</span><span class="tr-v">${xsec.f.toFixed(4)} cm</span></div>
+    <div class="tr-r"><span class="tr-l">Surcharge chord  L₁ = L + 2f</span><span class="tr-e">= ${xsec.L.toFixed(4)} + 2×${xsec.f.toFixed(4)}</span><span class="tr-v">${xsec.L1.toFixed(4)} cm</span></div>
+    <div class="tr-r"><span class="tr-l">Arc radius  r = (L₁/2)/sin(α)</span><span class="tr-e">= ${(xsec.L1/2).toFixed(4)}/sin(${alpha}°)</span><span class="tr-v">${alpha>0?xsec.r.toFixed(4):'∞'} cm</span></div>
+    <div class="tr-r"><span class="tr-l">Trapezoid  A₁ = (L+L₁)/2×I</span><span class="tr-e">= (${xsec.L.toFixed(3)}+${xsec.L1.toFixed(3)})/2×${xsec.I.toFixed(4)}</span><span class="tr-v">${xsec.A1.toFixed(4)} cm²</span></div>
+    <div class="tr-r"><span class="tr-l">Segment  A₂ = r²/2×(2α−sin2α)</span><span class="tr-e">r=${xsec.r.toFixed(3)}, 2α=${(2*alpha).toFixed(1)}°</span><span class="tr-v">${xsec.A2.toFixed(4)} cm²</span></div>
+    <div class="tr-r"><span class="tr-l">Total area  A = A₁+A₂</span><span class="tr-e">= ${xsec.A1.toFixed(4)}+${xsec.A2.toFixed(4)}</span><span class="tr-v">${xsec.A_cm2.toFixed(4)} cm²</span></div>
+    <div class="tr-r"><span class="tr-l">Theo. capacity  Q = A×V×ρ×3600</span><span class="tr-e">= ${xsec.A_m2.toFixed(6)}m²×${V}×${rho}×3600</span><span class="tr-v">${Q_theo.toFixed(4)} tph</span></div>
+    <div class="tr-r"><span class="tr-l">Effective  Q_eff = Q×fill%/100</span><span class="tr-e">= ${Q_theo.toFixed(4)}×${fillPct}/100</span><span class="tr-v" style="color:var(--green2);font-size:12px">${Q_level.toFixed(4)} tph</span></div>`;
+
+  // Matrix
+  const speeds = [0.5,0.75,1.0,1.25,1.5,2.0,2.5,3.0,3.5,4.0,5.0];
+  const widths = [400,500,600,800,1000,1200,1400,1600];
+  let mtx=`<thead><tr><th>V (m/s)</th>${widths.map(w=>`<th class="n">${w}mm</th>`).join('')}</tr></thead><tbody>`;
+  speeds.forEach(sp=>{
+    mtx+=`<tr><td class="n ${Math.abs(sp-V)<0.01?'hi':''}" style="font-family:var(--mono)">${sp.toFixed(2)}</td>`;
+    widths.forEach(w=>{
+      const xs=getXSec(w,beta,alpha);
+      const q=xs.A_m2*sp*rho*3600*fill;
+      const cur=Math.abs(sp-V)<0.01&&Math.abs(w-bw)<1;
+      mtx+=`<td class="n ${cur?'hi':''}" style="font-family:var(--mono)">${q.toFixed(0)}</td>`;
+    });
+    mtx+=`</tr>`;
+  });
+  document.getElementById('cap-matrix').innerHTML=mtx+`</tbody>`;
+
+  drawCapCanvas(document.getElementById('cap-canvas'),xsec,bw,beta,alpha,fill,V,Q_theo,Q_level);
+}
+
+function drawCapCanvas(canvas,xs,bw_mm,beta_d,alpha_d,fill,V,Q,Qe){
+  const ctx=canvas.getContext('2d'),W=canvas.width,H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+  const b=bw_mm/10,S=(W*0.68)/b,cx=W/2,base=H-38;
+  const beta=beta_d*DEG,alpha=alpha_d*DEG;
+  ctx.fillStyle='rgba(30,34,50,.6)';ctx.fillRect(0,base+4,W,H-base);
+  ctx.strokeStyle='#38416a';ctx.lineWidth=2;
+  [-1,0,1].forEach(p=>{
+    const x=cx+p*(xs.L/2+xs.m/2)*S;
+    ctx.beginPath();ctx.moveTo(x,base+4);ctx.lineTo(x,base+22);ctx.stroke();
+  });
+  ctx.strokeStyle='rgba(86,97,144,.75)';ctx.lineWidth=3;
+  [-1,1].forEach(side=>{
+    ctx.beginPath();ctx.moveTo(cx+side*(xs.L/2)*S,base);ctx.lineTo(cx+side*(xs.L/2+xs.m)*S,base-xs.I*S);ctx.stroke();
+  });
+  ctx.beginPath();ctx.moveTo(cx-xs.L/2*S,base);ctx.lineTo(cx+xs.L/2*S,base);ctx.stroke();
+  const adj_I=xs.I*fill, adj_L1=xs.L1*fill*0.9+(xs.L1*0.1);
+  const gr=ctx.createLinearGradient(cx,base-xs.d*fill*S,cx,base);
+  gr.addColorStop(0,'rgba(201,162,39,.7)');gr.addColorStop(.6,'rgba(201,162,39,.4)');gr.addColorStop(1,'rgba(201,162,39,.1)');
+  ctx.fillStyle=gr;ctx.strokeStyle='rgba(232,186,60,.75)';ctx.lineWidth=1.5;
+  ctx.beginPath();
+  ctx.moveTo(cx-xs.L/2*S,base);
+  ctx.lineTo(cx-(xs.L/2+xs.m*fill)*S,base-adj_I*S);
+  ctx.lineTo(cx-adj_L1/2*S,base-adj_I*S);
+  if(alpha>0&&isFinite(xs.r)){
+    const ew=adj_L1/2*S,eh=(xs.r-Math.sqrt(xs.r*xs.r-(adj_L1/2)*(adj_L1/2)))*S;
+    ctx.ellipse(cx,base-adj_I*S,ew,Math.max(eh,1),0,Math.PI,2*Math.PI);
+  } else {ctx.lineTo(cx+adj_L1/2*S,base-adj_I*S);}
+  ctx.lineTo(cx+(xs.L/2+xs.m*fill)*S,base-adj_I*S);
+  ctx.lineTo(cx+xs.L/2*S,base);
+  ctx.closePath();ctx.fill();ctx.stroke();
+  ctx.strokeStyle='#586190';ctx.lineWidth=3;
+  ctx.beginPath();
+  ctx.moveTo(cx-b/2*S,base-xs.I*S*.4);ctx.lineTo(cx-(xs.L/2+xs.m)*S,base-xs.I*S);
+  ctx.lineTo(cx-xs.L/2*S,base);ctx.lineTo(cx+xs.L/2*S,base);
+  ctx.lineTo(cx+(xs.L/2+xs.m)*S,base-xs.I*S);ctx.moveTo(cx+b/2*S,base-xs.I*S*.4);
+  ctx.lineTo(cx+(xs.L/2+xs.m)*S,base-xs.I*S);ctx.stroke();
+  ctx.fillStyle='#dde1f0';ctx.font='11px IBM Plex Mono';ctx.textAlign='center';
+  ctx.fillText(`b = ${bw_mm} mm`,cx,H-8);
+  ctx.fillStyle='var(--gold2)';ctx.font='bold 11px IBM Plex Mono';ctx.textAlign='left';
+  ctx.fillText(`A=${xs.A_cm2.toFixed(1)}cm²  Q=${Q.toFixed(0)}tph`,10,18);
+  ctx.fillStyle='var(--green2)';
+  ctx.fillText(`Q_eff=${Qe.toFixed(1)}tph  fill=${Math.round(fill*100)}%`,10,33);
+  ctx.fillStyle='var(--cyan2)';ctx.font='10px IBM Plex Mono';
+  ctx.fillText(`β=${beta_d}°  α=${alpha_d}°  V=${V}m/s`,10,48);
+}
+
+// ════════════════════════════════════════════════════════════
+//  POWER + MOTOR
+// ════════════════════════════════════════════════════════════
+function calcPower(){
+  const L=+document.getElementById('p-len').value||200;
+  const H_lift=+document.getElementById('p-lift').value||0;
+  const bw=+document.getElementById('p-bw').value||800;
+  const Q=+document.getElementById('p-cap').value||500;
+  const V=+document.getElementById('p-vel').value||1.5;
+  const rho=+document.getElementById('p-rho').value||1.36;
+  const mb=+document.getElementById('p-mb').value||12;
+  const spc=+document.getElementById('p-isp-c').value||1.2;
+  const spr=+document.getElementById('p-isp-r').value||2.4;
+  const Dc=+document.getElementById('p-idler-c').value||127;
+  const Dr=+document.getElementById('p-idler-r').value||127;
+  const feeds=+document.getElementById('p-feeds').value||0;
+  const skirt=document.getElementById('p-skirt').value==='yes';
+  const ttype=document.getElementById('p-takeup').value;
+
+  const incl_rad=Math.atan2(H_lift,L),cosD=Math.cos(incl_rad);
+  const mG=Q/(3.6*V);
+  const pt=5;
+  const Lrc=(bw/1000)*0.85/3;
+  const mRO=3*(Math.PI/4*((Dc*Dc-(Dc-2*pt)*(Dc-2*pt))/1e6)*Lrc*7850)/spc;
+  const Lrr=(bw/1000)*0.9;
+  const mRU=(Math.PI/4*((Dr*Dr-(Dr-2*pt)*(Dr-2*pt))/1e6)*Lrr*7850)/spr;
+  const f=0.020;
+  const C=ttype==='gravity'?1.05:1.09;
+  const FH=f*C*L*G*(mRU+mRO+mb*(1+cosD)+mG*cosD);
+  const FStG=mG*G*H_lift, FStB=mb*G*H_lift;
+  const FSt=FStG+FStB;
+  const F2=FH*0.08;
+  const LSkirt=feeds*5+(skirt?L*0.5:0);
+  const FS=0.3*LSkirt*G*(mG*0.01)*2;
+  const Fu=FH+FSt+F2+FS;
+  const Peff=Fu*V/1000;
+  const eta=0.95;
+  const P_motor_req=Peff/eta*1.1;
+
+  const eFmu=Math.exp(0.35*210*DEG);
+  const T2=Fu/(eFmu-1);
+  const T1=T2+Fu;
+
+  document.getElementById('pwr-res').innerHTML=`
+    <div class="rb gold"><div class="rb-lbl">Eff. Pull Fᵤ</div><div class="rb-val gv">${(Fu/1000).toFixed(2)}</div><div class="rb-unit">kN</div></div>
+    <div class="rb green"><div class="rb-lbl">Power at Pulley</div><div class="rb-val grv">${Peff.toFixed(1)}</div><div class="rb-unit">kW</div></div>
+    <div class="rb green"><div class="rb-lbl">Motor Power Req.</div><div class="rb-val grv">${P_motor_req.toFixed(1)}</div><div class="rb-unit">kW</div></div>
+    <div class="rb cyan"><div class="rb-lbl">Tight Side T₁</div><div class="rb-val cv">${(T1/1000).toFixed(2)}</div><div class="rb-unit">kN</div></div>
+    <div class="rb cyan"><div class="rb-lbl">Slack Side T₂</div><div class="rb-val cv">${(T2/1000).toFixed(2)}</div><div class="rb-unit">kN</div></div>
+    <div class="rb amber"><div class="rb-lbl">Main Friction FH</div><div class="rb-val av">${(FH/1000).toFixed(2)}</div><div class="rb-unit">kN</div></div>
+    <div class="rb amber"><div class="rb-lbl">Gradient FSt</div><div class="rb-val av">${(FSt/1000).toFixed(2)}</div><div class="rb-unit">kN</div></div>
+    <div class="rb violet"><div class="rb-lbl">Secondary F₂</div><div class="rb-val vv">${(F2/1000).toFixed(3)}</div><div class="rb-unit">kN</div></div>
+    <div class="rb violet"><div class="rb-lbl">Skirt/Feed Fs</div><div class="rb-val vv">${(FS/1000).toFixed(3)}</div><div class="rb-unit">kN</div></div>`;
+
+  buildMotorPanel(P_motor_req);
+}
+
+function suggestMotor(P_req){
+  return IEC_MOTORS.find(m=>m>=P_req) || IEC_MOTORS[IEC_MOTORS.length-1];
+}
+
+function buildMotorPanel(P_req){
+  const suggested = suggestMotor(P_req);
+  if(!selMotorKW) selMotorKW = suggested;
+
+  document.getElementById('mp-calc').textContent = P_req.toFixed(2)+' kW';
+  document.getElementById('mp-sugg').textContent = suggested+' kW';
+
+  const sel = selMotorKW;
+  const marginPct = ((sel-P_req)/P_req*100).toFixed(1);
+  const marginOk = sel>=P_req;
+  document.getElementById('mp-margin').textContent = (marginOk ? '+'+marginPct : marginPct)+'%';
+  document.getElementById('mp-margin').style.color = marginOk ? (parseFloat(marginPct)>50?'var(--amber2)':'var(--green2)') : 'var(--red2)';
+
+  document.getElementById('motor-sizes').innerHTML = IEC_MOTORS.map(m=>{
+    const isSel = m===sel;
+    const isSugg = m===suggested;
+    const tooSmall = m<P_req;
+    let cls='ms-btn';
+    if(isSel) cls+=' ms-sel';
+    else if(isSugg&&!isSel) cls+=' ms-ok';
+    else if(tooSmall) cls+=' ms-too-small';
+    return `<button class="${cls}" onclick="selectMotor(${m},${P_req})">${m} kW${isSugg?' ★':''}</button>`;
+  }).join('');
+
+  const svcF = (sel/P_req).toFixed(3);
+  const fullLoadA = (sel*1000/(Math.sqrt(3)*415*0.9)).toFixed(1);
+  const syncRPM = 1500;
+  const fullRPM = Math.round(syncRPM*0.97);
+  const torque = (sel*1000/(2*Math.PI*fullRPM/60)).toFixed(0);
+  const fluid = sel>30?'Recommended':'Optional';
+
+  document.getElementById('motor-detail').innerHTML=`
+    <div class="motor-stat"><div class="motor-stat-lbl">Selected Motor</div><div class="motor-stat-val" style="color:var(--green2);font-size:18px">${sel} kW</div></div>
+    <div class="motor-stat"><div class="motor-stat-lbl">Required Power</div><div class="motor-stat-val" style="color:var(--gold2)">${P_req.toFixed(1)} kW</div></div>
+    <div class="motor-stat"><div class="motor-stat-lbl">Service Factor</div><div class="motor-stat-val" style="color:${parseFloat(svcF)<1?'var(--red2)':parseFloat(svcF)>2?'var(--amber2)':'var(--green2)'}">${svcF}×</div></div>
+    <div class="motor-stat"><div class="motor-stat-lbl">Margin over Req.</div><div class="motor-stat-val" style="color:${marginOk?'var(--green2)':'var(--red2)'}">${marginOk?'+':''}${marginPct}%</div></div>
+    <div class="motor-stat"><div class="motor-stat-lbl">Full Load Current</div><div class="motor-stat-val" style="color:var(--cyan2)">≈${fullLoadA} A</div></div>
+    <div class="motor-stat"><div class="motor-stat-lbl">Voltage (standard)</div><div class="motor-stat-val" style="color:var(--slate)">415 V 3φ</div></div>
+    <div class="motor-stat"><div class="motor-stat-lbl">Speed (4-pole)</div><div class="motor-stat-val" style="color:var(--gold2)">≈${fullRPM} rpm</div></div>
+    <div class="motor-stat"><div class="motor-stat-lbl">Full Load Torque</div><div class="motor-stat-val" style="color:var(--amber2)">${torque} Nm</div></div>
+    <div class="motor-stat"><div class="motor-stat-lbl">Fluid Coupling</div><div class="motor-stat-val" style="color:${sel>30?'var(--green2)':'var(--slate)'}">${fluid}</div></div>`;
+}
+
+function selectMotor(kw, P_req){
+  selMotorKW = kw;
+  buildMotorPanel(P_req);
+}
+
+// ════════════════════════════════════════════════════════════
+//  BELT CONVEYOR SIZING (NEW — FROM EXCEL)
+// ════════════════════════════════════════════════════════════
+
+// C-factor table (Majoration factor vs Horizontal Length in m)
+const CF_TABLE = [
+  {hl:0, c:16.3},{hl:3, c:16.3},{hl:5, c:10.6},{hl:10, c:6.2},{hl:15, c:4.5},
+  {hl:20, c:3.6},{hl:25, c:3.1},{hl:30, c:2.8},{hl:40, c:2.4},{hl:50, c:2.2},
+  {hl:60, c:2.1},{hl:70, c:2.0},{hl:80, c:1.9},{hl:90, c:1.8},{hl:100, c:1.75},
+  {hl:120, c:1.75},{hl:140, c:1.6},{hl:160, c:1.55},{hl:180, c:1.5},{hl:200, c:1.45},
+  {hl:250, c:1.38},{hl:300, c:1.31},{hl:400, c:1.25},{hl:500, c:1.2},
+  {hl:600, c:1.17},{hl:800, c:1.11},{hl:1000, c:1.08},{hl:1200, c:1.06},
+  {hl:1500, c:1.05},{hl:2000, c:1.04},{hl:2500, c:1.04},{hl:3000, c:1.03}
+];
+
+function getCFactor(hl){
+  if(hl<=0) return CF_TABLE[0].c;
+  for(let i=0;i<CF_TABLE.length-1;i++){
+    if(hl>=CF_TABLE[i].hl && hl<=CF_TABLE[i+1].hl){
+      const t=(hl-CF_TABLE[i].hl)/(CF_TABLE[i+1].hl-CF_TABLE[i].hl);
+      return CF_TABLE[i].c + t*(CF_TABLE[i+1].c-CF_TABLE[i].c);
+    }
+  }
+  return CF_TABLE[CF_TABLE.length-1].c;
+}
+
+// Belt width data: max flow at 1 m/s at 100% filling (m³/h), linear weight of mobile parts (kg/m)
+const BW_DATA = {
+  650: {flow:154, lw:40, tail:1.8, tension:1.5, head:2.0, frame:0.065, mobile:0.05, swalk:0.17, dwalk:0.23, housing:0.35, pilar:0.10, covering:0.015},
+  800: {flow:245, lw:52, tail:2.0, tension:2.0, head:2.2, frame:0.07, mobile:0.06, swalk:0.18, dwalk:0.25, housing:0.40, pilar:0.10, covering:0.019},
+  1000:{flow:397, lw:71, tail:2.3, tension:2.5, head:2.5, frame:0.075, mobile:0.08, swalk:0.29, dwalk:0.36, housing:0.45, pilar:0.11, covering:0.022},
+  1200:{flow:586, lw:90, tail:2.7, tension:2.8, head:3.0, frame:0.08, mobile:0.095, swalk:0.35, dwalk:0.40, housing:0.50, pilar:0.12, covering:0.025},
+  1400:{flow:810, lw:115, tail:3.0, tension:3.0, head:3.3, frame:0.085, mobile:0.11, swalk:0.37, dwalk:0.42, housing:0.52, pilar:0.13, covering:0.028},
+  1600:{flow:1072,lw:150, tail:3.3, tension:3.2, head:3.5, frame:0.09, mobile:0.13, swalk:0.39, dwalk:0.44, housing:0.55, pilar:0.14, covering:0.030},
+  1800:{flow:1370,lw:185, tail:3.6, tension:3.5, head:3.8, frame:0.095, mobile:0.15, swalk:0.41, dwalk:0.46, housing:0.58, pilar:0.15, covering:0.033},
+  2000:{flow:1703,lw:220, tail:4.0, tension:3.8, head:4.2, frame:0.10, mobile:0.17, swalk:0.43, dwalk:0.48, housing:0.60, pilar:0.16, covering:0.035}
+};
+
+// Normalized power table
+const NORM_PWR = [0.55,0.75,1.1,1.5,2.2,3,4,5.5,7.5,11,15,18.5,22,30,37,45,55,75,90,110,132,160,200,250,315,400,500];
+
+function getNormPower(p){
+  return NORM_PWR.find(m=>m>=p) || NORM_PWR[NORM_PWR.length-1];
+}
+
+function calcSizing(){
+  const cap = +document.getElementById('sz-cap').value || 1000;
+  const den = +document.getElementById('sz-den').value || 1.3;
+  const fillStd = +document.getElementById('sz-fill').value || 75;
+  const HL = +document.getElementById('sz-hl').value || 3.5;
+  const EL = +document.getElementById('sz-el').value || 0;
+  const S = +document.getElementById('sz-spd').value || 0.5;
+  const bw = +document.getElementById('sz-bw').value || 2000;
+  const lSwalk = +document.getElementById('sz-swalk').value || 0;
+  const lDwalk = +document.getElementById('sz-dwalk').value || 0;
+  const lHousing = +document.getElementById('sz-housing').value || 0;
+  const lCovering = +document.getElementById('sz-covering').value || 0;
+  const eff = +document.getElementById('sz-eff').value || 0.85;
+  const Pf = +document.getElementById('sz-pf').value || 1.5;
+
+  const inclDeg = HL>0 ? Math.atan2(EL,HL)*180/Math.PI : 0;
+  document.getElementById('sz-incl-show').textContent = inclDeg.toFixed(1)+'°';
+
+  // Volume flowrate
+  const FV = den>0 ? cap/den : 0; // m³/h
+  const Fra = fillStd/100;
+
+  // Volume at 100% filling rate
+  const VPOB = Fra>0 ? FV/Fra : 0; // m³/h at 100% fill
+  // Massic at 100% fill
+  const D_100 = VPOB * den; // t/h
+  // Volume at 100% fill & 1 m/s
+  const DP = S>0 ? VPOB/S : 0; // m³/h
+
+  // Belt data
+  const bd = BW_DATA[bw];
+  if(!bd) return;
+
+  const V_NOM = bd.flow; // max vol at 1 m/s 100% fill for selected belt
+  // Actual vol at operating speed & actual fill
+  const VB = V_NOM * S; // at 100% fill at speed S
+  // Actual filling ratio
+  const Frr = DP>0 && V_NOM>0 ? Math.min(DP/V_NOM, 1.5) : 1; // ratio (can exceed 1 = overfill)
+  const FrrPct = Frr * 100;
+  // Actual massic throughput
+  const DTP = VB * Frr * den;
+
+  // C factor
+  const Cf = getCFactor(HL);
+  // Linear weight
+  const Lw = bd.lw; // kg/m
+  // Friction factor
+  const f_fric = 0.022;
+
+  // Power estimation
+  const Pv = 9.81 * Cf / 1000 * Lw * S * HL; // No-load
+  const Pc = 2.73 * Cf / 1000 * cap * HL;     // Translation
+  const Pd = 2.73 / 1000 * cap * EL;           // Elevation
+  const subTotal = Pv + Pc + Pd + Pf;
+  const Pr = eff>0 ? subTotal/eff : 0; // Absorbed
+  const Pn = getNormPower(Pr);          // Installed (normalized)
+
+  // Weight estimation
+  const wTail = bd.tail;
+  const wTension = bd.tension;
+  const wHead = bd.head;
+  const wFrame = bd.frame * HL;
+  const wMobile = bd.mobile * HL;
+  const wSwalk = bd.swalk * lSwalk;
+  const wDwalk = bd.dwalk * lDwalk;
+  const wHousing = bd.housing * lHousing;
+  const wCovering = bd.covering * lCovering;
+  const wPilar = bd.pilar * EL;
+  const wTotal = wTail + wTension + wHead + wFrame + wMobile + wSwalk + wDwalk + wHousing + wCovering + wPilar;
+
+  // Hero
+  document.getElementById('sz-h-pwr').textContent = Pn.toFixed(1);
+  document.getElementById('sz-h-bw').textContent = bw;
+  document.getElementById('sz-h-fill').textContent = FrrPct.toFixed(1);
+  document.getElementById('sz-h-wt').textContent = wTotal.toFixed(2);
+
+  // Flow diagram
+  document.getElementById('sz-flow').innerHTML = `
+    <div class="sz-flow-step"><div class="sz-fl">Nominal Cap</div><div class="sz-fv" style="color:var(--gold2)">${cap} tph</div></div>
+    <span class="sz-flow-arrow">→</span>
+    <div class="sz-flow-step"><div class="sz-fl">Vol. Flow</div><div class="sz-fv" style="color:var(--cyan2)">${FV.toFixed(1)} m³/h</div></div>
+    <span class="sz-flow-arrow">→</span>
+    <div class="sz-flow-step"><div class="sz-fl">At 100% Fill</div><div class="sz-fv" style="color:var(--amber2)">${VPOB.toFixed(1)} m³/h</div></div>
+    <span class="sz-flow-arrow">→</span>
+    <div class="sz-flow-step"><div class="sz-fl">At 1 m/s</div><div class="sz-fv" style="color:var(--violet2)">${DP.toFixed(1)} m³/h</div></div>
+    <span class="sz-flow-arrow">→</span>
+    <div class="sz-flow-step"><div class="sz-fl">Belt Max</div><div class="sz-fv" style="color:var(--green2)">${V_NOM} m³/h</div></div>`;
+
+  // Volume results
+  const fillColor = FrrPct<=85 ? 'var(--green2)' : FrrPct<=100 ? 'var(--gold2)' : 'var(--red2)';
+  const fillStatus = FrrPct<=85 ? '✔ OK' : FrrPct<=100 ? '▲ HIGH' : '⚠ OVERFILL';
+  document.getElementById('sz-vol-res').innerHTML = `
+    <div class="rb gold"><div class="rb-lbl">Vol. Flowrate FV</div><div class="rb-val gv" style="font-size:16px">${FV.toFixed(1)}</div><div class="rb-unit">m³/h</div></div>
+    <div class="rb cyan"><div class="rb-lbl">Vol at 100% & 1m/s (DP)</div><div class="rb-val cv" style="font-size:16px">${DP.toFixed(1)}</div><div class="rb-unit">m³/h</div></div>
+    <div class="rb amber"><div class="rb-lbl">Belt Max (V.NOM)</div><div class="rb-val av" style="font-size:16px">${V_NOM}</div><div class="rb-unit">m³/h @1m/s</div></div>
+    <div class="rb green"><div class="rb-lbl">Actual Fill Ratio</div><div class="rb-val" style="font-size:16px;color:${fillColor}">${FrrPct.toFixed(1)}% ${fillStatus}</div><div class="rb-unit"></div></div>
+    <div class="rb violet"><div class="rb-lbl">C Factor (HL=${HL}m)</div><div class="rb-val vv" style="font-size:16px">${Cf.toFixed(2)}</div><div class="rb-unit"></div></div>
+    <div class="rb gold"><div class="rb-lbl">Linear Wt (Lw)</div><div class="rb-val gv" style="font-size:16px">${Lw}</div><div class="rb-unit">kg/m</div></div>`;
+
+  // Power results
+  document.getElementById('sz-pwr-res').innerHTML = `
+    <div class="rb gold"><div class="rb-lbl">No-Load Power (Pv)</div><div class="rb-val gv" style="font-size:16px">${Pv.toFixed(3)}</div><div class="rb-unit">kW</div></div>
+    <div class="rb cyan"><div class="rb-lbl">Translation Power (Pc)</div><div class="rb-val cv" style="font-size:16px">${Pc.toFixed(3)}</div><div class="rb-unit">kW</div></div>
+    <div class="rb amber"><div class="rb-lbl">Elevation Power (Pd)</div><div class="rb-val av" style="font-size:16px">${Pd.toFixed(3)}</div><div class="rb-unit">kW</div></div>
+    <div class="rb violet"><div class="rb-lbl">Guiding/Cleaning (Pf)</div><div class="rb-val vv" style="font-size:16px">${Pf.toFixed(1)}</div><div class="rb-unit">kW</div></div>
+    <div class="rb gold"><div class="rb-lbl">Sub Total</div><div class="rb-val gv" style="font-size:16px">${subTotal.toFixed(3)}</div><div class="rb-unit">kW</div></div>
+    <div class="rb amber"><div class="rb-lbl">Absorbed (η=${(eff*100).toFixed(0)}%)</div><div class="rb-val av" style="font-size:16px">${Pr.toFixed(3)}</div><div class="rb-unit">kW</div></div>
+    <div class="rb green" style="grid-column:span 2"><div class="rb-lbl">Installed Power (Normalized)</div><div class="rb-val grv" style="font-size:24px">${Pn.toFixed(1)}</div><div class="rb-unit">kW</div></div>`;
+
+  // Weight grid
+  const wItems = [
+    {l:'Tail Pulley', v:wTail.toFixed(3)+'  t'},
+    {l:'Tension Pulley', v:wTension.toFixed(3)+' t'},
+    {l:'Head Pulley', v:wHead.toFixed(3)+' t'},
+    {l:`Frame (${bd.frame} t/m × ${HL}m)`, v:wFrame.toFixed(3)+' t'},
+    {l:`Mobile Parts (${bd.mobile} t/m × ${HL}m)`, v:wMobile.toFixed(3)+' t'},
+    {l:`Simple Walkway (${bd.swalk} t/m × ${lSwalk}m)`, v:wSwalk.toFixed(3)+' t'},
+    {l:`Double Walkway (${bd.dwalk} t/m × ${lDwalk}m)`, v:wDwalk.toFixed(3)+' t'},
+    {l:`Housing (${bd.housing} t/m × ${lHousing}m)`, v:wHousing.toFixed(3)+' t'},
+    {l:`Covering (${bd.covering} t/m × ${lCovering}m)`, v:wCovering.toFixed(3)+' t'},
+    {l:`Pilars (${bd.pilar} t/m × ${EL}m elev)`, v:wPilar.toFixed(3)+' t'},
+  ];
+  document.getElementById('sz-wt-grid').innerHTML = wItems.map(w=>`
+    <div class="wt-item"><span>${w.l}</span><span>${w.v}</span></div>`).join('');
+  document.getElementById('sz-wt-total').textContent = wTotal.toFixed(3)+' t';
+
+  // Trace
+  document.getElementById('sz-trace').innerHTML = `
+    <div class="tr-r"><span class="tr-l">Volume flowrate  FV = Cap/Den</span><span class="tr-e">= ${cap}/${den}</span><span class="tr-v">${FV.toFixed(4)} m³/h</span></div>
+    <div class="tr-r"><span class="tr-l">Fill ratio asked (Fra)</span><span class="tr-e">${fillStd}%</span><span class="tr-v">${Fra.toFixed(4)}</span></div>
+    <div class="tr-r"><span class="tr-l">Vol at 100% fill  VPOB = FV/Fra</span><span class="tr-e">= ${FV.toFixed(2)}/${Fra}</span><span class="tr-v">${VPOB.toFixed(4)} m³/h</span></div>
+    <div class="tr-r"><span class="tr-l">Massic at 100% fill  D = VPOB×Den</span><span class="tr-e">= ${VPOB.toFixed(2)}×${den}</span><span class="tr-v">${D_100.toFixed(4)} t/h</span></div>
+    <div class="tr-r"><span class="tr-l">Vol at 100% fill & 1 m/s  DP = VPOB/S</span><span class="tr-e">= ${VPOB.toFixed(2)}/${S}</span><span class="tr-v">${DP.toFixed(4)} m³/h</span></div>
+    <div class="tr-r"><span class="tr-l">Belt ${bw}mm max flow (V.NOM)</span><span class="tr-e">from table</span><span class="tr-v">${V_NOM} m³/h</span></div>
+    <div class="tr-r"><span class="tr-l">Actual fill ratio  Frr = DP/V.NOM</span><span class="tr-e">= ${DP.toFixed(2)}/${V_NOM}</span><span class="tr-v" style="color:${fillColor}">${FrrPct.toFixed(2)}%</span></div>
+    <div class="tr-r"><span class="tr-l">C factor (HL=${HL}m)</span><span class="tr-e">from lookup table</span><span class="tr-v">${Cf.toFixed(4)}</span></div>
+    <div class="tr-r"><span class="tr-l">Linear weight Lw (${bw}mm)</span><span class="tr-e">from table</span><span class="tr-v">${Lw} kg/m</span></div>
+    <div class="tr-r"><span class="tr-l">Pv = 9.81×C/1000×Lw×S×HL</span><span class="tr-e">= 9.81×${Cf.toFixed(3)}/1000×${Lw}×${S}×${HL}</span><span class="tr-v">${Pv.toFixed(6)} kW</span></div>
+    <div class="tr-r"><span class="tr-l">Pc = 2.73×C/1000×FM×HL</span><span class="tr-e">= 2.73×${Cf.toFixed(3)}/1000×${cap}×${HL}</span><span class="tr-v">${Pc.toFixed(6)} kW</span></div>
+    <div class="tr-r"><span class="tr-l">Pd = 2.73/1000×FM×H</span><span class="tr-e">= 2.73/1000×${cap}×${EL}</span><span class="tr-v">${Pd.toFixed(6)} kW</span></div>
+    <div class="tr-r"><span class="tr-l">Pf (Guiding/Cleaning)</span><span class="tr-e">fixed input</span><span class="tr-v">${Pf.toFixed(4)} kW</span></div>
+    <div class="tr-r"><span class="tr-l">Sub Total = Pv+Pc+Pd+Pf</span><span class="tr-e">= ${Pv.toFixed(4)}+${Pc.toFixed(4)}+${Pd.toFixed(4)}+${Pf}</span><span class="tr-v">${subTotal.toFixed(6)} kW</span></div>
+    <div class="tr-r"><span class="tr-l">Absorbed  Pr = SubTotal/η</span><span class="tr-e">= ${subTotal.toFixed(4)}/${eff}</span><span class="tr-v">${Pr.toFixed(6)} kW</span></div>
+    <div class="tr-r"><span class="tr-l">Installed (Normalized)</span><span class="tr-e">next std ≥ ${Pr.toFixed(2)}</span><span class="tr-v" style="color:var(--green2);font-size:12px">${Pn.toFixed(1)} kW</span></div>
+    <div class="tr-r"><span class="tr-l">Conveyor total weight</span><span class="tr-e">sum of all components</span><span class="tr-v" style="color:var(--gold2);font-size:12px">${wTotal.toFixed(3)} t</span></div>`;
+
+  // C-factor lookup table
+  let cfHtml = `<thead><tr><th>HL (m)</th>${CF_TABLE.map(r=>`<th class="n">${r.hl}</th>`).join('')}</tr></thead><tbody><tr><td style="font-family:var(--mono);font-weight:700;color:var(--gold2)">C</td>`;
+  CF_TABLE.forEach(r=>{
+    const cur = Math.abs(r.hl-HL)<0.5;
+    cfHtml += `<td class="n ${cur?'hi':''}" style="font-family:var(--mono)">${r.c.toFixed(2)}</td>`;
+  });
+  document.getElementById('sz-cf-tbl').innerHTML = cfHtml + `</tr></tbody>`;
+
+  // Belt width table
+  const bws = Object.keys(BW_DATA).map(Number);
+  let bwHtml = `<thead><tr><th>Belt Width</th><th class="n">Max Flow (m³/h)</th><th class="n">Lw (kg/m)</th><th class="n">Tail (t)</th><th class="n">Tension (t)</th><th class="n">Head (t)</th><th class="n">Frame (t/m)</th><th class="n">Mobile (t/m)</th></tr></thead><tbody>`;
+  bws.forEach(w=>{
+    const d = BW_DATA[w];
+    const cur = w===bw;
+    bwHtml += `<tr><td class="n ${cur?'hi':''}">${w} mm</td><td class="n ${cur?'hi':''}">${d.flow}</td><td class="n ${cur?'hi':''}">${d.lw}</td><td class="n">${d.tail}</td><td class="n">${d.tension}</td><td class="n">${d.head}</td><td class="n">${d.frame}</td><td class="n">${d.mobile}</td></tr>`;
+  });
+  document.getElementById('sz-bw-tbl').innerHTML = bwHtml + `</tbody>`;
+}
+
+// ════════════════════════════════════════════════════════════
+//  TABS
+// ════════════════════════════════════════════════════════════
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.pg').forEach(p=>{p.classList.remove('active');p.style.display='none';});
+    tab.classList.add('active');
+    const pg=document.getElementById('pg-'+tab.dataset.pg);
+    if(pg){pg.style.display='block';setTimeout(()=>pg.classList.add('active'),10);}
+  });
+});
+
+// ════════════════════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded',()=>{
+  updateFillWidget();
+  calcCapacity();
+  calcPower();
+  calcSizing();
+});
+</script>
+</body>
+</html>
