@@ -92,7 +92,7 @@ DASHBOARDS = [
         "title": "Belt Conveyor Design",
         "subtitle": "CEMA / IS 11592 Standards",
         "description": "Complete belt conveyor design with motor sizing, idler selection, belt tension analysis, and auxiliary machinery calculations.",
-        "file": "Belt_Conveyor.html",
+        "file": "Belt Conveyor.html",
         "icon": "⚙️",
         "category": "Material Handling",
         "restricted": False,
