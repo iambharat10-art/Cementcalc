@@ -243,9 +243,8 @@ DASHBOARDS = [
         "color": "#10b981",
         "keywords": "VRM heat and mass balance, vertical roller mill, thermal balance, material balance, drying capacity, fan sizing, raw mill, coal mill, cement mill",
     },
-     {
-        
-         "id": "Cement Tech Reference",
+     {        
+        "id": "Cement Tech Reference",
         "title": "Cement Main Machinery",
         "subtitle": "Machniery Selection",
         "description": "Comprehensive reference for cement plant main machinery selection, equipment specifications, process applications, and engineering guidelines.",
